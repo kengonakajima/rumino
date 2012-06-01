@@ -15,6 +15,10 @@ def cmd(s)
   return `#{s}`
 end
 
+def differ(h1,h2)
+  return Marshal.dump(h1) != Marshal.dump(h2)
+end
+
 # globs = [ "*.rb", "js/*.js", .. ]
 def monitorFiles(globs, proc )
   t = Thread.new do 
@@ -24,15 +28,19 @@ def monitorFiles(globs, proc )
       sleep 1
       all=[]
       globs.each do |pat|
-        all += Dir.glob(pat) # + Dir.glob("*.tmpl")
+        all += Dir.glob(pat) 
       end
 
       all.each do |fn|
         next if fn =~ /^_/
         s = File::Stat.new(fn)
-        if s.mtime != lastmtime[fn] then
-          changed.push(fn)
-#          print fn, ": ", s.mtime, "  ",s.size, "\n"
+        if lastmtime[fn] then
+          if s.mtime != lastmtime[fn] then
+            changed.push(fn)
+            print fn, ": ", s.mtime, "  ",s.size, "\n"
+            lastmtime[fn] = s.mtime
+          end
+        else
           lastmtime[fn] = s.mtime
         end
       end
@@ -43,5 +51,16 @@ def monitorFiles(globs, proc )
     end
   end
   return t
+end
+
+def savePid(path)
+  begin
+    f=File.open(path,"w")
+    f.write( "#{Process.pid}" )
+    f.close()
+    return true
+  rescue
+    return false
+  end
 end
 
