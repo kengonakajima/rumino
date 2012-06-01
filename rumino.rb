@@ -2,6 +2,9 @@
 # rumino: for quick hack servers
 #
 
+require "rubygems"
+require "json/pure"
+
 def strdate()
   t = Time.now
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
@@ -64,3 +67,14 @@ def savePid(path)
   end
 end
 
+def readJSON(path)
+  begin
+    f = File.open(path,"r")
+    h = JSON.parse(f.read())
+    f.close()
+    return h
+  rescue
+    p "cannot read json from: #{path}"
+    return nil
+  end
+end
