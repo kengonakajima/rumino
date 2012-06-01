@@ -10,6 +10,9 @@ def strdate()
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
 end
 
+def prt(*ary)
+  STDERR.print(ary.join())
+end
 def p(*ary)
   STDERR.print( "[",Time.now,"] ",ary.join(),"\n")
 end
