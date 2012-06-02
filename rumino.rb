@@ -6,6 +6,7 @@ require "rubygems"
 require "json/pure"
 require "fileutils"
 require "erb"
+require "net/smtp"
 
 def assert(x)
   if !x then 
@@ -18,10 +19,14 @@ def strdate()
 end
 
 def prt(*ary)
-  STDERR.print(ary.join())
+  s = ary.join()
+  STDERR.print(s)
+  return s
 end
 def p(*ary)
-  STDERR.print( "[",Time.now,"] ",ary.join(),"\n")
+  s = "[",Time.now,"] ",ary.join(),"\n"
+  STDERR.print(s)
+  return s
 end
 def cmd(s)
   p(s)
@@ -99,6 +104,16 @@ def writeFile(path,s)
     return false
   end
 end
+def appendFile(path,s)
+  begin
+    f = File.open(path,"a+")
+    f.write(s)
+    f.close()
+    return true
+  rescue
+    return false
+  end
+end
 def readFile(path)
   begin
     f = File.open(path,"r")
@@ -160,4 +175,34 @@ def doerb(tmplpath,b)
   s = erb.result(b)
 #  STDERR.print "doerb end path:#{tmplpath} slen:#{s.size}\n"
   return s
+end
+
+def sendmail(from,to,subj,msg)
+  date = `date`.chop
+
+  text  = "Subject: #{subj}\n"
+  text += "From: #{from}\n"
+  text += "Content-type: text/plain; charset=iso-2022-jp\n"
+  text += "Sender: #{from}\n"
+  text += "Date: #{date}\n"
+  text += "To: #{to}\n"
+  text += "\n\n"
+  text += "#{msg}\n"
+  text += "-----end of message---------------------\n"
+
+  begin
+    output "start smtp...\n"
+    smtp = Net::SMTP.start( "localhost" , 25 )
+
+    output "send_mail:"
+    smtp.send_mail( text, from, to )
+    smtp.finish
+    output "finished.\n"
+    return true
+  rescue
+    output "SEND ERROR : #{$!}\n"
+    output "mail text:\n"
+    output text
+    return false
+  end
 end
