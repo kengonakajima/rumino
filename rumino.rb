@@ -5,6 +5,7 @@
 require "rubygems"
 require "json/pure"
 require "fileutils"
+require "erb"
 
 def assert(x)
   if !x then 
@@ -147,3 +148,16 @@ def rm_rf(pat)
   end
 end
 
+def getTmpl(path)
+  src = File.open(path,"r").read()
+  return ERB.new(src)
+end
+
+
+def doerb(tmplpath,b)
+#  STDERR.print "doerb start path:#{tmplpath}\n"
+  erb = getTmpl(tmplpath)
+  s = erb.result(b)
+#  STDERR.print "doerb end path:#{tmplpath} slen:#{s.size}\n"
+  return s
+end
