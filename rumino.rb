@@ -103,3 +103,21 @@ def readFile(path)
   end
 end
 
+def exist(path)
+  begin
+    return File::Stat.new(path)
+  rescue
+    return false
+  end
+end
+def eexit(s)
+  p s
+  exit 1
+end
+def quote(s)
+  out=[]
+  s.split("\n").each do |line|
+    out.push( " > #{line}" )
+  end
+  return out.join("\n")
+end
