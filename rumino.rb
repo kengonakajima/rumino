@@ -139,6 +139,11 @@ def ls(pat)
   return Dir.glob(pat)
 end
 def rm_rf(pat)
-  FileUtils.rm_r(pat, {:force=>true})
+  begin
+    FileUtils.rm_r(pat, {:force=>true})
+    return true
+  rescue
+    return false
+  end
 end
 
