@@ -81,3 +81,25 @@ def readJSON(path)
     return nil
   end
 end
+
+def writeFile(path,s)
+  begin
+    f = File.open(path,"w")
+    f.write(s)
+    f.close()
+    return true
+  rescue
+    return false
+  end
+end
+def readFile(path)
+  begin
+    f = File.open(path,"r")
+    data = f.read()
+    f.close()
+    return data
+  rescue
+    return nil
+  end
+end
+
