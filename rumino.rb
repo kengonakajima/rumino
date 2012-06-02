@@ -4,7 +4,13 @@
 
 require "rubygems"
 require "json/pure"
+require "fileutils"
 
+def assert(x)
+  if !x then 
+    raise 
+  end
+end
 def strdate()
   t = Time.now
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
@@ -121,3 +127,18 @@ def quote(s)
   end
   return out.join("\n")
 end
+def mkdir(path)
+  begin
+    Dir::mkdir(path,0755)
+    return true
+  rescue
+    return false
+  end
+end
+def ls(pat)
+  return Dir.glob(pat)
+end
+def rm_rf(pat)
+  FileUtils.rm_r(pat, {:force=>true})
+end
+
