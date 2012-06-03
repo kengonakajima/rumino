@@ -49,6 +49,7 @@ assert(differ(h,k))
 
 t = [
   [ 1, "hello", 3 ],
+  nil,
   [ 500, 100, "hoge" ]
 ]
 s=gentbl(t)

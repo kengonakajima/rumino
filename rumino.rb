@@ -240,6 +240,7 @@ end
 def gentbl(t)
   colszs=[]
   t.each do |line|
+    next if not line
     line.size.times do |i|
       elem = line[i]
       sz = elem.to_s.size
@@ -248,6 +249,7 @@ def gentbl(t)
   end
   out = ""
   t.each do |line|
+    next if not line
     line.size.times do |i|
       elem = line[i].to_s
       col = " " * colszs[i]
