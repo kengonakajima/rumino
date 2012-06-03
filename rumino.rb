@@ -191,18 +191,18 @@ def sendmail(from,to,subj,msg)
   text += "-----end of message---------------------\n"
 
   begin
-    output "start smtp...\n"
+    p "start smtp...\n"
     smtp = Net::SMTP.start( "localhost" , 25 )
 
-    output "send_mail:"
+    p "send_mail:"
     smtp.send_mail( text, from, to )
     smtp.finish
-    output "finished.\n"
+    p "finished.\n"
     return true
   rescue
-    output "SEND ERROR : #{$!}\n"
-    output "mail text:\n"
-    output text
+    p "SEND ERROR : #{$!}\n"
+    p "mail text:\n"
+    p text
     return false
   end
 end
