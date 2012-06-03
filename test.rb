@@ -47,5 +47,15 @@ assert(!differ(h,j))
 k = {"a"=>1,"b"=>"d"}
 assert(differ(h,k))
 
+t = [
+  [ 1, "hello", 3 ],
+  [ 500, 100, "hoge" ]
+]
+s=gentbl(t)
+ss = "1   hello 3    \n500 100   hoge \n"
+assert(s==ss)
+
+
+
 p "done"
 
