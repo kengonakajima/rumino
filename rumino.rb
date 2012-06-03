@@ -74,7 +74,7 @@ end
 def savePid(path)
   begin
     f=File.open(path,"w")
-    f.write( "#{Process.pid}" )
+    f.write( "#{Process.pid}\n" )
     f.close()
     return true
   rescue
