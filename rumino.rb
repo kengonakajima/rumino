@@ -13,7 +13,7 @@ def assert(x)
     raise 
   end
 end
-def strdate()
+def pathdate()
   t = Time.now
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
 end
@@ -27,6 +27,10 @@ def p(*ary)
   s = "[",Time.now,"] ",ary.join(),"\n"
   STDERR.print(s)
   return s
+end
+def println(*ary)
+  s = ary.join() + "\n"
+  print s  
 end
 def cmd(s)
   p(s)
@@ -141,7 +145,7 @@ def quote(s)
   s.split("\n").each do |line|
     out.push( " > #{line}" )
   end
-  return out.join("\n")
+  return out.join("\n") + "\n"
 end
 def mkdir(path)
   begin
@@ -178,7 +182,7 @@ def doerb(tmplpath,b)
 end
 
 def sendmail(from,to,subj,msg)
-  date = `date`.chop
+  date = Time.now.to_s
 
   text  = "Subject: #{subj}\n"
   text += "From: #{from}\n"
@@ -205,4 +209,21 @@ def sendmail(from,to,subj,msg)
     p text
     return false
   end
+end
+
+def existProcess(pid)
+  assert(pid)
+  s = `ps -p #{pid}`.split("\n")[-1].split(" ")[0]
+  if s.to_i == pid.to_i then 
+    return true
+  else
+    return false
+  end
+end
+
+def ok(b)
+  if b then return "OK" else return "NG" end
+end
+def getpid()
+  return Process.pid
 end
