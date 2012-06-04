@@ -274,3 +274,19 @@ def elapsedTime(path)
   end
 end
 
+def nowi()
+  return Time.now.to_i()
+end
+def shortdate(sec)
+  if sec < 60 then
+    return "now"
+  elsif sec < 3600 then
+    return "#{(sec/60)}min"
+  elsif sec < 3600*24 then
+    return "#{(sec/60/60)}hr"
+  elsif sec < 3600*24*365 then
+    return "#{(sec/60/60/24)}day"
+  else
+    return "#{(sec/60/60/24/365)}year"
+  end
+end

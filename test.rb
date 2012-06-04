@@ -57,7 +57,11 @@ s=gentbl(t)
 ss = "1   hello 3    \n500 100   hoge \n"
 assert(s==ss)
 
-
+assert(shortdate(0)=="now")
+assert(shortdate(65)=="1min")
+assert(shortdate(7300)=="2hr")
+assert(shortdate(8*24*3600)=="8day")
+assert(shortdate(800*24*3600)=="2year")
 
 
 p "done"
