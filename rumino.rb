@@ -281,12 +281,12 @@ def shortdate(sec)
   if sec < 60 then
     return "now"
   elsif sec < 3600 then
-    return "#{(sec/60)}min"
+    return "#{(sec/60).to_i}min"
   elsif sec < 3600*24 then
-    return "#{(sec/60/60)}hr"
+    return "#{(sec/60/60).to_i}hr"
   elsif sec < 3600*24*365 then
-    return "#{(sec/60/60/24)}day"
+    return "#{(sec/60/60/24).to_i}day"
   else
-    return "#{(sec/60/60/24/365)}year"
+    return "#{(sec/60/60/24/365).to_i}year"
   end
 end
