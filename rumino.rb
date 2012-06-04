@@ -262,3 +262,15 @@ def gentbl(t)
   end
   return out
 end
+
+def elapsedTime(path)
+  begin
+    s = File::Stat.new(path)
+    if s then 
+      return Time.now - s.mtime
+    end
+  rescue
+    return nil
+  end
+end
+

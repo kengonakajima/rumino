@@ -41,6 +41,7 @@ r = readFile(path)
 assert(r)
 pid=r.strip.to_i
 assert(existProcess(pid))
+assert(elapsedTime(path)<10)
 
 j = {"a"=>1,"b"=>"c"}
 assert(!differ(h,j))
@@ -55,6 +56,7 @@ t = [
 s=gentbl(t)
 ss = "1   hello 3    \n500 100   hoge \n"
 assert(s==ss)
+
 
 
 
