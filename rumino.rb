@@ -170,6 +170,18 @@ def mkdir(path)
     return false
   end
 end
+def ensureDir(path)
+  begin
+    ary=path.split("/")
+    ary.size.times do |i|
+      p=ary[0..i].join("/")
+      mkdir(p)
+    end
+    return exist(path)
+  rescue
+    return false
+  end
+end
 def ls(pat)
   return Dir.glob(pat)
 end

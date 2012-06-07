@@ -11,6 +11,10 @@ assert(exist(path))
 assert(rm_rf(path))
 assert(!exist(path))
 
+assert(ensureDir(path+"/a/b/c/d"))
+assert(rm_rf(path+"/a/b/c/d"))
+
+
 assert(ok(false)=="NG")
 assert(ok(true)=="OK")
 
@@ -24,7 +28,7 @@ assert(doerb( "erb.tmpl",binding).strip=="hello")
 p quote("a\nb\n")
 assert(quote("a\nb\n")==" > a\n > b\n")
 
-path = "/tmp/rumino_test_hoge_#{nt}"
+path = "/tmp/rumino_test_hoge_2_#{nt}"
 assert(writeFile(path,"hoge"))
 assert(appendFile(path,"piyo"))
 assert(appendFile(path,"piyo"))
