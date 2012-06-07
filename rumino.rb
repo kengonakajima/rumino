@@ -311,10 +311,8 @@ class MiniWeb
   def initialize()
     @global = false
   end
-  def useConfJSONs(*args)
-p( "aho:", args.join("xx"))
-    @conf = mergeJSONs(*args)
-    p( "hoge:", @conf)
+  def configure(h)
+    @conf = h
     @bindaddr = @conf["bindAddress"]
     if ! @bindaddr then @bindaddr = "127.0.0.1" end
     @port = @conf["webPort"]  
