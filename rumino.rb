@@ -97,6 +97,18 @@ def readJSON(path)
     return nil
   end
 end
+def mergeJSONs(*paths)
+  out={}
+  paths.each do |path|
+    if path then 
+      h = readJSON(path)
+      if h then 
+        out=out.merge(h)
+      end
+    end
+  end
+  return out
+end
 
 def writeFile(path,s)
   begin
@@ -289,4 +301,73 @@ def shortdate(sec)
   else
     return "#{(sec/60/60/24/365).to_i}year"
   end
+end
+
+# argv : json conf file paths (merged)
+
+class MiniWeb
+  def initialize()
+    @global = false
+  end
+  def useConfJSONs(*args)
+p( "aho:", args.join("xx"))
+    @conf = mergeJSONs(*args)
+    p( "hoge:", @conf)
+    @bindaddr = @conf["bindAddress"]
+    if ! @bindaddr then @bindaddr = "127.0.0.1" end
+    @port = @conf["webPort"]  
+    if ! @port then @port = @conf["port"] end
+    if ! @port then 
+      raise "MiniWeb: 'port', or 'webPort' is required in config"
+    end
+  end
+
+  def onPOST(&blk)
+    @recvpost = blk
+  end
+  def onGET(&blk)
+    @recvget = blk
+  end
+
+  def terminate()
+    cmd("rm -f #{@pidfile}")
+    @srv.shutdown()
+  end
+
+  def useGlobalTrapAndPidFile()
+    if $miniweb_global_service then
+      raise "MiniWeb: cannot use 2 instances of MiniWeb global service in a process"
+    end
+    if ! @conf["pidFile"] then 
+      raise "MiniWeb: useGlobalTrapAndPidFile: 'pidFile' required in config"
+    end
+    @pidpath = @conf["pidFile"]
+    @global = true
+    trap("INT"){terminate()}
+    trap("TERM"){terminate()}
+  end
+
+  def start()
+    @srv = WEBrick::HTTPServer.new({ 
+                                :BindAddress => @bindaddr,
+                                :Port => @port
+                              })
+    @srv.mount_proc("/") do |req,res|
+      if req.request_method == "POST" then 
+        if @recvpost then 
+          @recvpost.call(req,res)
+        end
+      elsif req.request_method == "GET" then
+        if @recvget then 
+          @recvget.call(req,res)
+        end
+      end
+    end 
+
+    savePid(@pidpath)
+
+    p "MiniWeb: starting server: #{@port} #{@bindaddr}"
+    @srv.start()
+  end
+
 end
