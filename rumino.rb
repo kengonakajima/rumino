@@ -3,7 +3,7 @@
 #
 
 require "rubygems"
-require "json/pure"
+require "json"
 require "fileutils"
 require "erb"
 require "net/smtp"
