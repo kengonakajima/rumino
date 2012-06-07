@@ -67,7 +67,7 @@ assert(writeFile("/tmp/js1",{"a"=>1,"b"=>2}.to_json))
 assert(writeFile("/tmp/js2",{"b"=>3,"c"=>4}.to_json))
 h=mergeJSONs("/tmp/js1","/tmp/js2")
 assert(h)
-h.each do |k,v|print("::",k,v) end
+
 print("aaa:", h["a"])
 assert(h["a"]==1)
 assert(h["b"]==3)
