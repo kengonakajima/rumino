@@ -23,8 +23,10 @@ def prt(*ary)
   STDERR.print(s)
   return s
 end
+
+
 def p(*ary)
-  s = "[",Time.now,"] ",ary.join(),"\n"
+  s = "[",Time.now.strftime("%Y-%m-%d %H:%M:%S"),"] ",ary.join(),"\n"
   STDERR.print(s)
   return s
 end
