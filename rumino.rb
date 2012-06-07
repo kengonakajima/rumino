@@ -7,6 +7,7 @@ require "json"
 require "fileutils"
 require "erb"
 require "net/smtp"
+require "webrick"
 
 def assert(x)
   if !x then 
