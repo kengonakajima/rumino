@@ -92,5 +92,24 @@ assert(h["a"]==1)
 assert(h["b"]==3)
 assert(h["c"]==4)
 
+# mysql
+my = MysqlWrapper.new( "localhost","root","","test")
+
+my.query( "drop table if exists rumino_test" )
+
+my.query( "create table if not exists rumino_test ( id int not null primary key auto_increment, name char(50), createdAt datetime )" )
+
+my.query( "insert into rumino_test set name='aa', createdAt=now() " )
+my.query( "insert into rumino_test set name='aa', createdAt=now() " )
+my.query( "insert into rumino_test set name='aa', createdAt=now() " )
+
+
+res = my.query( "select id,name,createdAt from rumino_test" )
+
+res.each do |ent|
+  print("e:",ent["id"], ",", ent["name"], ",", ent["createdAt"].to_i, "\n" )
+end
+
+
 p "done"
 
