@@ -9,6 +9,24 @@ require "erb"
 require "net/smtp"
 require "webrick"
 
+class Hash
+  # to get rid of deprecation warnings..
+  def id()
+    return self["id"]
+  end
+  def method_missing(name,*args)
+#    print( "NN:", name, ",", self, "\n")
+    v = self[name.to_s]
+    if v==nil then 
+      raise "method #{name} is not defined"
+    else
+      return v
+    end
+  end
+end
+
+
+
 def assert(x)
   if !x then 
     raise 

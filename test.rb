@@ -2,6 +2,23 @@ require "./rumino.rb"
 
 p "start"
 
+
+
+# hash
+h={"a"=>1,"b"=>2}
+assert(h.a==1)
+assert(h.b==2)
+printok=false
+begin
+  print(h.c)
+  printok = true
+rescue
+  p("e:",$!)
+end
+assert(printok==false)
+
+#
+
 nt = Time.now.to_i
 
 path = "/tmp/rumino_test_hoge_#{nt}"
@@ -71,8 +88,6 @@ assert(writeFile("/tmp/js1",{"a"=>1,"b"=>2}.to_json))
 assert(writeFile("/tmp/js2",{"b"=>3,"c"=>4}.to_json))
 h=mergeJSONs("/tmp/js1","/tmp/js2")
 assert(h)
-
-print("aaa:", h["a"])
 assert(h["a"]==1)
 assert(h["b"]==3)
 assert(h["c"]==4)
