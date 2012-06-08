@@ -93,8 +93,10 @@ assert(h["b"]==3)
 assert(h["c"]==4)
 
 # mysql
-my = MysqlWrapper.new( "localhost","root","","test")
+my = MysqlWrapper.new( "localhost","root","","")
 
+my.query( "create database if not exists test")
+my.query( "use test")
 my.query( "drop table if exists rumino_test" )
 
 my.query( "create table if not exists rumino_test ( id int not null primary key auto_increment, name char(50), createdAt datetime )" )
