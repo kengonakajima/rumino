@@ -319,9 +319,23 @@ def elapsedTime(path)
   end
 end
 
+def now()
+  return Time.now()
+end
+
 def nowi()
   return Time.now.to_i()
 end
+
+
+def nowdate()  # mysql datetime format
+  todate(Time.now())
+end
+def todate(t)
+  return sprintf( "%04d-%02d-%02d %02d:%02d:%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
+end
+
+
 def shortdate(sec)
   if sec < 60 then
     return "now"
@@ -419,10 +433,15 @@ end
 
 
 class MysqlWrapper
-  def initialize(host,user,pw,db)
+  def initialize(*args)
     require "mysql"
+    host,user,pw,db = args[0],args[1],args[2],args[3]
+    if args.size == 1 then 
+      conf = args[0]
+      host,user,pw,db = conf["host"], conf["user"], conf["password"], conf["database"]
+    end
     @my = Mysql::new(host,user,pw,db)
-  end
+  end  
   def conv(t,v)
     case t
     when Mysql::Field::TYPE_TINY, Mysql::Field::TYPE_SHORT, Mysql::Field::TYPE_LONG, Mysql::Field::TYPE_INT24, Mysql::Field::TYPE_LONGLONG, Mysql::Field::TYPE_DECIMAL, Mysql::Field::TYPE_YEAR	
@@ -430,6 +449,13 @@ class MysqlWrapper
     when Mysql::Field::TYPE_FLOAT, Mysql::Field::TYPE_DOUBLE
       return v.to_f
     when Mysql::Field::TYPE_TIMESTAMP, Mysql::Field::TYPE_DATE, Mysql::Field::TYPE_TIME, Mysql::Field::TYPE_DATETIME	
+      begin
+        tv = Time.parse(v)
+        return tv
+      rescue
+        p "Time.parse failed:#{$!} : #{v}"
+        return nil
+      end
       return Time.parse(v)
     when Mysql::Field::TYPE_STRING, Mysql::Field::TYPE_VAR_STRING, Mysql::Field::TYPE_BLOB, Mysql::Field::TYPE_CHAR
       return v
@@ -446,7 +472,7 @@ class MysqlWrapper
 
     # 
     out = []
-    print("nr:", res.num_rows, "\n")
+#    p "nr:", res.num_rows
     fields = res.fetch_fields
 #    fields.each do |f| print("FF:", f.type, "\n" )end
     res.each do |row|
@@ -456,7 +482,7 @@ class MysqlWrapper
         rt = fields[fi].type
         rv = conv(rt, row[fi])
         ent[rn] = rv
-#        print( "ent[#{rn}] = #{rv}, #{rv.class} #{rt}\n")
+#        p "ent[#{rn}] = #{rv}, #{rv.class} #{rt}"
       end
       out.push(ent)
     end
@@ -465,8 +491,35 @@ class MysqlWrapper
   def esc(s)
     return Mysql::escape_string(s)
   end
+  def insert(tbl,h)
+    sets = []
+    h.each do |k,v|
+      if typeof(v) == String then 
+        vv = esc( v.to_s )
+        sets.push( "#{k}= '#{vv}'" )
+      else
+        sets.push( "#{k}= #{v}" )
+      end
+    end
+    q = "insert into #{tbl} set " + sets.join(",")
+    query(q)
+    q = "select last_insert_id() as id"
+    res = query(q)
+    res.each do |row|
+      return row["id"].to_i
+    end
+    return nil
+  end
+  def method_missing(name,*args)
+    @my.send(name,*args)
+  end
 end
 
 def esc(s)
   return Mysql::escape_string(s)
+end
+
+# suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
+def typeof(o)
+  return o.class
 end

@@ -94,6 +94,11 @@ assert(h["c"]==4)
 
 # mysql
 my = MysqlWrapper.new( "localhost","root","","")
+p my.stat()
+my.close()
+conf = { "host"=>"localhost", "user"=>"root", "password"=>"","database"=>""}
+my = MysqlWrapper.new( conf)
+
 
 my.query( "create database if not exists test")
 my.query( "use test")
@@ -101,15 +106,24 @@ my.query( "drop table if exists rumino_test" )
 
 my.query( "create table if not exists rumino_test ( id int not null primary key auto_increment, name char(50), createdAt datetime )" )
 
-my.query( "insert into rumino_test set name='aa', createdAt=now() " )
-my.query( "insert into rumino_test set name='aa', createdAt=now() " )
-my.query( "insert into rumino_test set name='aa', createdAt=now() " )
+#my.query( "insert into rumino_test set name='aa', createdAt=now() " )
+#my.query( "insert into rumino_test set name='aa', createdAt=now() " )
+#my.query( "insert into rumino_test set name='aa', createdAt=now() " )
 
+nowt = now()
+newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+assert(newid==3)
 
 res = my.query( "select id,name,createdAt from rumino_test" )
 
+assert( res.size == 3 )
+
 res.each do |ent|
-  print("e:",ent["id"], ",", ent["name"], ",", ent["createdAt"].to_i, "\n" )
+  print("row:",ent["id"], ",", ent["name"], ",", ent["createdAt"], "\n" )
+  assert( ent["name"]=="aa")
+  assert( ent["createdAt"].to_i == nowt.to_i )
 end
 
 assert( esc("hello\"") == "hello\\\"" )
