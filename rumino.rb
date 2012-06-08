@@ -9,6 +9,24 @@ require "erb"
 require "net/smtp"
 require "webrick"
 
+class Hash
+  # to get rid of deprecation warnings..
+  def id()
+    return self["id"]
+  end
+  def method_missing(name,*args)
+#    print( "NN:", name, ",", self, "\n")
+    v = self[name.to_s]
+    if v==nil then 
+      raise "method #{name} is not defined"
+    else
+      return v
+    end
+  end
+end
+
+
+
 def assert(x)
   if !x then 
     raise 
@@ -366,6 +384,18 @@ class MiniWeb
                                 :Port => @port
                               })
     @srv.mount_proc("/") do |req,res|
+      def res.sendJSON(h)
+        self.body = h.to_json
+        self["Content-Type"] = "application/json"
+      end
+      def res.sendHTML(t)
+        self.body = t
+        self["Content-Type"] = "text/html"
+      end
+      def res.sendRaw(d)
+        self.body = d
+        self["Content-Type"] = "text/plain"
+      end
       if req.request_method == "POST" then 
         if @recvpost then 
           @recvpost.call(req,res)
@@ -385,7 +415,58 @@ class MiniWeb
 
 end
 
+
+
+
+class MysqlWrapper
+  def initialize(host,user,pw,db)
+    require "mysql"
+    @my = Mysql::new(host,user,pw,db)
+  end
+  def conv(t,v)
+    case t
+    when Mysql::Field::TYPE_TINY, Mysql::Field::TYPE_SHORT, Mysql::Field::TYPE_LONG, Mysql::Field::TYPE_INT24, Mysql::Field::TYPE_LONGLONG, Mysql::Field::TYPE_DECIMAL, Mysql::Field::TYPE_YEAR	
+      return v.to_i
+    when Mysql::Field::TYPE_FLOAT, Mysql::Field::TYPE_DOUBLE
+      return v.to_f
+    when Mysql::Field::TYPE_TIMESTAMP, Mysql::Field::TYPE_DATE, Mysql::Field::TYPE_TIME, Mysql::Field::TYPE_DATETIME	
+      return Time.parse(v)
+    when Mysql::Field::TYPE_STRING, Mysql::Field::TYPE_VAR_STRING, Mysql::Field::TYPE_BLOB, Mysql::Field::TYPE_CHAR
+      return v
+    when Mysql::Field::TYPE_SET, Mysql::Field::TYPE_ENUM, Mysql::Field::TYPE_NULL
+      raise "column type #{t} is not implemented"
+    else
+      raise "column type #{t} is not known"
+    end
+  end
+  # return an array of hashes
+  def query(s)
+    res = @my.query(s)
+    return nil if !res
+
+    # 
+    out = []
+    print("nr:", res.num_rows, "\n")
+    fields = res.fetch_fields
+#    fields.each do |f| print("FF:", f.type, "\n" )end
+    res.each do |row|
+      ent = {}
+      fields.size.times do |fi|
+        rn = fields[fi].name
+        rt = fields[fi].type
+        rv = conv(rt, row[fi])
+        ent[rn] = rv
+#        print( "ent[#{rn}] = #{rv}, #{rv.class} #{rt}\n")
+      end
+      out.push(ent)
+    end
+    return out
+  end
+  def esc(s)
+    return Mysql::escape_string(s)
+  end
+end
+
 def esc(s)
   return Mysql::escape_string(s)
 end
-
