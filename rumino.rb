@@ -114,7 +114,7 @@ def readJSON(path)
     f.close()
     return h
   rescue
-    p "cannot read json from: #{path}"
+    p "cannot read json from: #{path} : #{$!}"
     return nil
   end
 end
@@ -476,8 +476,16 @@ class MysqlWrapper
     fld = res.fetch_field
     return conv( fld.type, row[0] )
   end
+  def count(cond)
+    return queryScalar( "select count(*) from #{cond}")
+  end
   def query(s)
-    res = @my.query(s)
+    begin
+      res = @my.query(s)
+    rescue
+      p "mysql query error: #{$!} query:'#{s}'"
+      return nil
+    end
     return nil if !res
 
     # 
@@ -504,11 +512,11 @@ class MysqlWrapper
   def insert(tbl,h)
     sets = []
     h.each do |k,v|
-      if typeof(v) == String then 
+      if typeof(v) == Fixnum then 
+        sets.push( "#{k}= #{v}" )
+      else
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
-      else
-        sets.push( "#{k}= #{v}" )
       end
     end
     q = "insert into #{tbl} set " + sets.join(",")
