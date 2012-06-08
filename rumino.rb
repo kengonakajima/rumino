@@ -393,6 +393,8 @@ class MiniWeb
   end
 
   def start()
+    p "MiniWeb: starting server: #{@port} #{@bindaddr}"
+
     @srv = WEBrick::HTTPServer.new({ 
                                 :BindAddress => @bindaddr,
                                 :Port => @port
@@ -423,7 +425,7 @@ class MiniWeb
 
     savePid(@pidpath)
 
-    p "MiniWeb: starting server: #{@port} #{@bindaddr}"
+
     @srv.start()
   end
 
