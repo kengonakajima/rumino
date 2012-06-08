@@ -354,6 +354,18 @@ class MiniWeb
                                 :Port => @port
                               })
     @srv.mount_proc("/") do |req,res|
+      def res.sendJSON(h)
+        self.body = h.to_json
+        self["Content-Type"] = "application/json"
+      end
+      def res.sendHTML(t)
+        self.body = t
+        self["Content-Type"] = "text/html"
+      end
+      def res.sendRaw(d)
+        self.body = d
+        self["Content-Type"] = "text/plain"
+      end
       if req.request_method == "POST" then 
         if @recvpost then 
           @recvpost.call(req,res)
