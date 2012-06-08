@@ -384,3 +384,8 @@ class MiniWeb
   end
 
 end
+
+def esc(s)
+  return Mysql::escape_string(s)
+end
+
