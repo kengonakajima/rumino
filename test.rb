@@ -115,6 +115,9 @@ newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
 newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
 newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
 assert(newid==3)
+cnt = my.queryScalar( "select count(*) from rumino_test" )
+assert(cnt==3)
+
 
 res = my.query( "select id,name,createdAt from rumino_test" )
 

@@ -466,6 +466,16 @@ class MysqlWrapper
     end
   end
   # return an array of hashes
+  def rawquery(s)
+    return @my.query(s)
+  end
+  def queryScalar(s)
+    res = @my.query(s)
+    raise "not a scalar" if res.num_fields > 1 or res.num_rows > 1 
+    row = res.fetch_row()
+    fld = res.fetch_field
+    return conv( fld.type, row[0] )
+  end
   def query(s)
     res = @my.query(s)
     return nil if !res
