@@ -27,11 +27,13 @@ end
 
 
 
-def assert(x)
+def assert(x,*msg)
   if !x then 
-    raise 
+    raise msg.join()
   end
 end
+
+
 def pathdate()
   t = Time.now
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
@@ -514,11 +516,13 @@ class MysqlWrapper
   def insert(tbl,h)
     sets = []
     h.each do |k,v|
-      if typeof(v) == Fixnum then 
+      if typeof(v) == Fixnum or typeof(v) == Float then 
         sets.push( "#{k}= #{v}" )
-      else
+      elsif typeof(v) == String then
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
+      else
+        raise "data have to be Fixnum or String"
       end
     end
     q = "insert into #{tbl} set " + sets.join(",")

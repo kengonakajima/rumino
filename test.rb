@@ -119,6 +119,14 @@ cnt = my.queryScalar( "select count(*) from rumino_test" )
 assert(cnt==3)
 cnt = my.count( "rumino_test where id>=2")
 assert(cnt==2)
+e=false
+begin
+  my.insert( "rumino_test", {:name=>[1,2,3], :createdAt=>{"a"=>"b"}})
+rescue
+  p "got exception: ", $!
+  e=true
+end
+assert(e)
 
 res = my.query( "select id,name,createdAt from rumino_test" )
 
