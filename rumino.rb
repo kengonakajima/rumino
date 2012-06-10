@@ -525,6 +525,7 @@ class MysqlWrapper
   def setstmt(h)
     sets = []
     h.each do |k,v|
+      k = k.to_s
       if typeof(v) == Fixnum or typeof(v) == Float then 
         sets.push( "#{k}= #{v}" )
       elsif typeof(v) == String then
