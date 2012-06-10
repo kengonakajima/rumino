@@ -127,9 +127,11 @@ rescue
   e=true
 end
 assert(e)
+out=my.query1( "select * from rumino_test where id=1")
+assert(out)
+assert(out.id==1)
 
 res = my.query( "select id,name,createdAt from rumino_test" )
-
 assert( res.size == 3 )
 
 res.each do |ent|
@@ -137,6 +139,11 @@ res.each do |ent|
   assert( ent["name"]=="aa")
   assert( ent["createdAt"].to_i == nowt.to_i )
 end
+
+my.update( "rumino_test", { "name"=>"bb" }, "id=2")
+out=my.query1( "select * from rumino_test where id=2")
+assert(out.name=="bb")
+
 
 assert( esc("hello\"") == "hello\\\"" )
 assert( my.esc("hello\"") == "hello\\\"" )

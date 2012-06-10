@@ -480,10 +480,16 @@ class MysqlWrapper
     fld = res.fetch_field
     return conv( fld.type, row[0] )
   end
+  def query1(s)
+    res = query(s)
+    return res[0]
+  end
+
   def count(cond)
     return queryScalar( "select count(*) from #{cond}")
   end
   def query(s)
+#    p "query:",s
     begin
       res = @my.query(s)
     rescue
@@ -513,7 +519,7 @@ class MysqlWrapper
   def esc(s)
     return Mysql::escape_string(s)
   end
-  def insert(tbl,h)
+  def setstmt(h)
     sets = []
     h.each do |k,v|
       if typeof(v) == Fixnum or typeof(v) == Float then 
@@ -521,11 +527,20 @@ class MysqlWrapper
       elsif typeof(v) == String then
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
+      elsif typeof(v) == NilClass then
+        sets.push( "#{k}=NULL")
       else
-        raise "data have to be Fixnum or String"
+        raise "data(#{typeof(v)}) have to be Fixnum or String"
       end
-    end
-    q = "insert into #{tbl} set " + sets.join(",")
+    end    
+    return sets.join(",")
+  end
+  def update(tbl,h,cond)
+    q = "update #{tbl} set " + setstmt(h) + " where " + cond
+    return query(q)
+  end
+  def insert(tbl,h)
+    q = "insert into #{tbl} set " + setstmt(h)
     query(q)
     q = "select last_insert_id() as id"
     res = query(q)
