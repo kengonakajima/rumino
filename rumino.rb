@@ -566,9 +566,13 @@ def escf(fmt,*args)
   raise "escf: arg mismatch" if fmt.count("?") != args.size
   ind=0
   out = fmt.gsub("?").each do 
-    ret = args[ind]
+    arg = args[ind]
     ind += 1
-    ret
+    if typeof(arg) == String then 
+      esc(arg)
+    else
+      arg
+    end
   end
   return out
 end

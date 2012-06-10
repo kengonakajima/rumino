@@ -140,7 +140,7 @@ res.each do |ent|
   assert( ent["createdAt"].to_i == nowt.to_i )
 end
 
-res = my.query( "select * from rumino_test where id >= ? order by id", 2 )
+res = my.query( "select * from rumino_test where id >= ? and name='?' and name !='?' order by id", 2, "aa", "\t\n" )
 assert(res.size==2)
 assert(res[0].id==2)
 assert(res[1].id==3)
