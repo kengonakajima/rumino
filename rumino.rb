@@ -488,12 +488,15 @@ class MysqlWrapper
   def count(cond)
     return queryScalar( "select count(*) from #{cond}")
   end
-  def query(s)
+  def query(s,*args)
 #    p "query:",s
+    if args.size > 0 then 
+      s = escf(s,*args)
+    end
     begin
       res = @my.query(s)
     rescue
-      p "mysql query error: #{$!} query:'#{s}'"
+      p "mysql query error: #{$!.backtrace} query:'#{s}'"
       return nil
     end
     return nil if !res
@@ -557,6 +560,19 @@ end
 def esc(s)
   return Mysql::escape_string(s)
 end
+
+# replace each ? to each args
+def escf(fmt,*args)
+  raise "escf: arg mismatch" if fmt.count("?") != args.size
+  ind=0
+  out = fmt.gsub("?").each do 
+    ret = args[ind]
+    ind += 1
+    ret
+  end
+  return out
+end
+
 
 # suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
 def typeof(o)
