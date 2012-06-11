@@ -8,14 +8,7 @@ p "start"
 h={"a"=>1,"b"=>2}
 assert(h.a==1)
 assert(h.b==2)
-printok=false
-begin
-  print(h.c)
-  printok = true
-rescue
-  p("e:",$!)
-end
-assert(printok==false)
+assert(h.c==nil)
 
 #
 
@@ -145,6 +138,22 @@ assert(res.size==2)
 assert(res[0].id==2)
 assert(res[1].id==3)
 
+# array
+ary = my.queryArray( "select id from rumino_test order by id" )
+assert( ary.size == 3 )
+assert( ary[0] == 1 )
+assert( ary[1] == 2 )
+assert( ary[2] == 3 )
+e=false
+begin
+  my.queryArray( "select id,name from rumino_test order by id" )
+rescue
+  p "expected:", $!
+  e=true
+end
+assert(e)
+
+
 # update
 my.update( "rumino_test", { "name"=>"bb" }, "id=2")
 out=my.query1( "select * from rumino_test where id=2")
@@ -166,7 +175,7 @@ my.query( "create table rumino_test_ens ( v int, name char(100), age int )" )
 assert( my.ensureColumns( "rumino_test_ens", [ "v","name", "age" ] ) )
 e=false
 begin
-  my.ensureColumns( "rumino_test_ens", [ "v","name", "age", "causeserror" ] )
+  my.ensureColumns( "rumino_test_ens", [ "v","name", :age, "causeserror" ] )
 rescue
   p "expected:", $!
   e=true

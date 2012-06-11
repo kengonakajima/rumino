@@ -17,11 +17,7 @@ class Hash
   def method_missing(name,*args)
 #    print( "NN:", name, ",", self, "\n")
     v = self[name.to_s]
-    if v==nil then 
-      raise "method #{name} is not defined"
-    else
-      return v
-    end
+    return v
   end
 end
 
@@ -473,16 +469,26 @@ class MysqlWrapper
   def rawquery(s)
     return @my.query(s)
   end
-  def queryScalar(s)
+  def queryScalar(s)  
     res = @my.query(s)
     raise "not a scalar" if res.num_fields > 1 or res.num_rows > 1 
     row = res.fetch_row()
     fld = res.fetch_field
     return conv( fld.type, row[0] )
   end
-  def query1(s)
+  def query1(s)  # get 1 hash
     res = query(s)
     return res[0]
+  end
+  def queryArray(s) # get array of scalar value
+    res = @my.query(s)
+    raise "has more fields than 2" if res.num_fields > 1 
+    fld = res.fetch_field
+    out = []
+    res.each do |row|
+      out.push( conv( fld.type, row[0] ) )
+    end
+    return out
   end
 
   def count(cond)
@@ -559,7 +565,7 @@ class MysqlWrapper
   end
   def ensureColumns(name,colnames)
     argh={}
-    colnames.each do |nm| argh[nm]=true end
+    colnames.each do |nm| argh[nm.to_s]=true end
     res = query( "explain #{name}")
     
     dbh={}
