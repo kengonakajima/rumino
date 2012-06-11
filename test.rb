@@ -160,6 +160,19 @@ my.update( "rumino_test_bool", { :v => false }, "v=1" )
 v = my.queryScalar( "select v from rumino_test_bool limit 1" )
 assert(v==0)
 
+# ensureColumns
+my.query( "drop table if exists rumino_test_ens" )
+my.query( "create table rumino_test_ens ( v int, name char(100), age int )" )
+assert( my.ensureColumns( "rumino_test_ens", [ "v","name", "age" ] ) )
+e=false
+begin
+  my.ensureColumns( "rumino_test_ens", [ "v","name", "age", "causeserror" ] )
+rescue
+  p "expected:", $!
+  e=true
+end
+assert(e)
+
 #
 assert( esc("hello\"") == "hello\\\"" )
 assert( my.esc("hello\"") == "hello\\\"" )

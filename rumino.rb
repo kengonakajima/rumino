@@ -496,7 +496,7 @@ class MysqlWrapper
     begin
       res = @my.query(s)
     rescue
-      p "mysql query error: #{$!.backtrace} query:'#{s}'"
+      p "mysql query error: '#{$!}' \n#{$!.backtrace} query:'#{s}'"
       return nil
     end
     return nil if !res
@@ -556,6 +556,26 @@ class MysqlWrapper
       return row["id"].to_i
     end
     return nil
+  end
+  def ensureColumns(name,colnames)
+    argh={}
+    colnames.each do |nm| argh[nm]=true end
+    res = query( "explain #{name}")
+    
+    dbh={}
+    res.each do |ent|
+      fn = ent["Field"]
+      dbh[fn] = true
+      if ! argh[fn] then 
+        p "WARNING: table '#{name}' has excess field '#{fn}'"
+      end
+    end
+    argh.keys.each do |k|
+      if !dbh[k] then 
+        raise "FATAL: table '#{name}' doesn't have field '#{k}'"
+      end
+    end
+    return true
   end
   def method_missing(name,*args)
     @my.send(name,*args)
