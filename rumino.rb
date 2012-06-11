@@ -617,7 +617,7 @@ def typeof(o)
   return o.class
 end
 
-def argdump(b)  # usage: argdump(binding)
+def dumplocal(b)  # usage: argdump(binding)
   out = b.eval( <<EOF
 __s = ""
 local_variables.each do |name| 
