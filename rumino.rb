@@ -621,7 +621,7 @@ def argdump(b)  # usage: argdump(binding)
   out = b.eval( <<EOF
 __s = ""
 local_variables.each do |name| 
-  if name != "__s" then
+  if name != "__s" and name =~ /^[a-zA-Z0-9]+$/ then
     __s += name + ":"
     __s += eval( name + ".to_s" )
     __s += '\t'
