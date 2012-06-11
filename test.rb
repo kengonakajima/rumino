@@ -186,6 +186,12 @@ rescue
 end
 assert(e)
 
+# argdump
+def argdumptest(a,b,c)
+  return argdump(binding)
+end
+assert( argdumptest(1,2,3) == "a:1\tb:2\tc:3\t\n" )
+
 #
 assert( esc("hello\"") == "hello\\\"" )
 assert( my.esc("hello\"") == "hello\\\"" )

@@ -616,3 +616,20 @@ end
 def typeof(o)
   return o.class
 end
+
+def argdump(b)  # usage: argdump(binding)
+  out = b.eval( <<EOF
+__s = ""
+local_variables.each do |name| 
+  if name != "__s" then
+    __s += name + ":"
+    __s += eval( name + ".to_s" )
+    __s += '\t'
+  end
+end
+__s += "\n"
+EOF
+)
+  return out
+end
+
