@@ -10,9 +10,13 @@ assert(h.a==1)
 assert(h.b==2)
 assert(h.c==nil)
 
-#
 
-nt = Time.now.to_i
+# timer
+assert( unixtime( "2012-06-10 11:11:11" ) == 1339294271 )
+
+# file 
+
+nt = nowi()
 
 path = "/tmp/rumino_test_hoge_#{nt}"
 assert(rm_rf(path))

@@ -324,6 +324,9 @@ end
 def nowi()
   return Time.now.to_i()
 end
+def unixtime(date)
+  return Time::parse(date).to_i
+end
 
 
 def nowdate()  # mysql datetime format
