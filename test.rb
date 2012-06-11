@@ -162,6 +162,9 @@ assert(e)
 my.update( "rumino_test", { "name"=>"bb" }, "id=2")
 out=my.query1( "select * from rumino_test where id=2")
 assert(out.name=="bb")
+my.update( "rumino_test", { "name"=>"cc" }, "id=?",2)
+out=my.query1( "select * from rumino_test where id=2")
+assert(out.name=="cc")
 
 # boolean
 my.query( "drop table if exists rumino_test_bool" )
@@ -171,6 +174,8 @@ v = my.queryScalar( "select v from rumino_test_bool limit 1" )
 assert(v==1)
 my.update( "rumino_test_bool", { :v => false }, "v=1" )
 v = my.queryScalar( "select v from rumino_test_bool limit 1" )
+assert(v==0)
+v = my.queryScalar( "select v from rumino_test_bool limit ?",1 )
 assert(v==0)
 
 # ensureColumns

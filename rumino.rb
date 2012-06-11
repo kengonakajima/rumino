@@ -472,18 +472,24 @@ class MysqlWrapper
   def rawquery(s)
     return @my.query(s)
   end
-  def queryScalar(s)  
+  def queryScalar(s,*args)  
+    if args.size > 0 then s = escf(s,*args) end
     res = @my.query(s)
     raise "not a scalar" if res.num_fields > 1 or res.num_rows > 1 
     row = res.fetch_row()
     fld = res.fetch_field
-    return conv( fld.type, row[0] )
+    if !row then 
+      return nil
+    else
+      return conv( fld.type, row[0] )
+    end
   end
-  def query1(s)  # get 1 hash
-    res = query(s)
+  def query1(s,*args)  # get 1 hash
+    res = query(s,*args)
     return res[0]
   end
-  def queryArray(s) # get array of scalar value
+  def queryArray(s,*args) # get array of scalar value
+    if args.size > 0 then s = escf(s,*args) end
     res = @my.query(s)
     raise "has more fields than 2" if res.num_fields > 1 
     fld = res.fetch_field
@@ -494,8 +500,8 @@ class MysqlWrapper
     return out
   end
 
-  def count(cond)
-    return queryScalar( "select count(*) from #{cond}")
+  def count(cond, *args)
+    return queryScalar( "select count(*) from #{cond}", *args)
   end
   def query(s,*args)
 #    p "query:",s
@@ -552,9 +558,9 @@ class MysqlWrapper
     end    
     return sets.join(",")
   end
-  def update(tbl,h,cond)
+  def update(tbl,h,cond,*args)
     q = "update #{tbl} set " + setstmt(h) + " where " + cond
-    return query(q)
+    return query(q,*args)
   end
   def insert(tbl,h)
     q = "insert into #{tbl} set " + setstmt(h)
