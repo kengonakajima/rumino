@@ -531,6 +531,10 @@ class MysqlWrapper
       elsif typeof(v) == String then
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
+      elsif typeof(v) == TrueClass then 
+        sets.push( "#{k}=1")
+      elsif typeof(v) == FalseClass then 
+        sets.push( "#{k}=0")
       elsif typeof(v) == NilClass then
         sets.push( "#{k}=NULL")
       else
