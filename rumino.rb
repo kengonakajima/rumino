@@ -366,6 +366,10 @@ class MiniWeb
     if ! @port then 
       raise "MiniWeb: 'port', or 'webPort' is required in config"
     end
+    @shutdownOnException = true  # default is on
+    if @conf["shutdownOnException"] == false then 
+      @shutdownOnException = false
+    end
   end
 
   def onPOST(&blk)
@@ -413,13 +417,22 @@ class MiniWeb
         self.body = d
         self["Content-Type"] = "text/plain"
       end
-      if req.request_method == "POST" then 
-        if @recvpost then 
-          @recvpost.call(req,res)
+      begin
+        if req.request_method == "POST" then 
+          if @recvpost then 
+            @recvpost.call(req,res)
+          end
+        elsif req.request_method == "GET" then
+          if @recvget then 
+            @recvget.call(req,res)
+          end
         end
-      elsif req.request_method == "GET" then
-        if @recvget then 
-          @recvget.call(req,res)
+      rescue
+        if @shutdownOnException then
+          p "MiniWeb: caught exception, shutting down: #{$!}"
+          $!.backtrace.each do |e| p(e) end
+          @srv.shutdown()
+          p "MiniWeb: shutdown() called on port #{@port}"
         end
       end
     end 
