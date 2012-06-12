@@ -270,6 +270,9 @@ end
 def getpid()
   return Process.pid
 end
+def kill9self()
+  cmd "kill -KILL #{getpid()}"
+end
 
 # input: 2D array
 # a = [ [1,"helllllo",3], [500,100, "bb" ] ] 
@@ -656,3 +659,21 @@ EOF
   return out
 end
 
+
+# timer funcs
+def setInterval(n,&blk)
+  t = Thread.new do
+    while true
+      blk.call()
+      sleep n
+    end
+  end
+  return t
+end
+def setTimeout(n,&blk)
+  t = Thread.new do
+    sleep n
+    blk.call()
+  end
+  return t
+end
