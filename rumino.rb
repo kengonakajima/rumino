@@ -325,7 +325,7 @@ def nowi()
   return Time.now.to_i()
 end
 def unixtime(date)
-  return Time::parse(date).to_i
+  return Time::parse(date).utc.to_i
 end
 
 
@@ -430,6 +430,9 @@ class MiniWeb
     @srv.start()
   end
 
+  def method_missing(name,*args)
+    @srv.send(name,*args)
+  end
 end
 
 

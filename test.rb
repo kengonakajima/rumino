@@ -12,6 +12,7 @@ assert(h.c==nil)
 
 
 # timer
+p unixtime( "2012-06-10 11:11:11" ) 
 assert( unixtime( "2012-06-10 11:11:11" ) == 1339294271 )
 
 # file 
