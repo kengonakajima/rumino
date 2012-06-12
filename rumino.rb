@@ -355,6 +355,21 @@ def shortdate(sec)
 end
 
 # argv : json conf file paths (merged)
+class MiniWebRequest
+  def initialize(req)
+    @req = req
+    @data = {}
+  end
+  def set(name,val)
+    @data[name]=val
+  end
+  def get(name)
+    return @data[name]
+  end
+  def method_missing(name,*args)
+    @req.send(name,*args)
+  end
+end
 
 class MiniWeb
   def initialize()
@@ -404,9 +419,9 @@ class MiniWeb
     p "MiniWeb: starting server: #{@port} #{@bindaddr}"
 
     @srv = WEBrick::HTTPServer.new({ 
-                                :BindAddress => @bindaddr,
-                                :Port => @port
-                              })
+                                     :BindAddress => @bindaddr,
+                                     :Port => @port
+                                   })
     @srv.mount_proc("/") do |req,res|
       def res.sendJSON(h)
         self.body = h.to_json
@@ -420,6 +435,7 @@ class MiniWeb
         self.body = d
         self["Content-Type"] = "text/plain"
       end
+      req = MiniWebRequest.new(req)
       begin
         if req.request_method == "POST" then 
           if @recvpost then 
@@ -442,7 +458,6 @@ class MiniWeb
 
     savePid(@pidpath)
 
-
     @srv.start()
   end
 
@@ -451,6 +466,20 @@ class MiniWeb
   end
 end
 
+def httpRespond(req,res,deftype)
+  instance = deftype.new
+  ary = req.path.split("/")
+  ary.shift
+  fname = ary[0]
+  args = ary.dup
+  args.shift
+  req.set( "paths", args )
+  def req.paths()
+    return @data["paths"]
+  end
+  instance.send( fname, req,res )
+
+end
 
 
 
