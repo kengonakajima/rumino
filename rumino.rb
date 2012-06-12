@@ -528,7 +528,7 @@ class MysqlWrapper
         rt = fields[fi].type
         rv = conv(rt, row[fi])
         ent[rn] = rv
-#        p "ent[#{rn}] = #{rv}, #{rv.class} #{rt}"
+#        p "ent[#{rn}] = #{rv}(#{typeof(rv)}) #{rv.class} #{rt} rowval:#{row[fi]}"
       end
       out.push(ent)
     end
@@ -630,6 +630,7 @@ local_variables.each do |name|
   if name != "__s" and name =~ /^[a-zA-Z0-9]+$/ then
     __s += name + ":"
     __s += eval( name + ".to_s" )
+    __s += "(" + eval( "typeof("+name+").to_s" ) + ")"
     __s += '\t'
   end
 end

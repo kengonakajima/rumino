@@ -195,7 +195,7 @@ assert(e)
 def dumplocaltest(a,b,c)
   return dumplocal(binding)
 end
-assert( dumplocaltest(1,2,3) == "a:1\tb:2\tc:3\t\n" )
+assert( dumplocaltest(1,"2",3) == "a:1(Fixnum)\tb:2(String)\tc:3(Fixnum)\t\n" )
 
 #
 assert( esc("hello\"") == "hello\\\"" )
