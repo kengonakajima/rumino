@@ -487,7 +487,8 @@ def httpRespond(req,res,deftype)
   ary = req.path.split("/")
   ary.shift
   fname = ary[0]
-  req.paths = ary.dup.shift
+  req.paths = ary.dup
+  req.paths.shift
   def req.paths()
     return @data["paths"]
   end
