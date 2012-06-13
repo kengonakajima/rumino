@@ -638,8 +638,8 @@ class MysqlWrapper
     return sets.join(",")
   end
   def update(tbl,h,cond,*args)
-    q = "update #{tbl} set " + setstmt(h) + " where " + cond
-    return query(q,*args)
+    q = "update #{tbl} set " + setstmt(h) + " where " + escf(cond,*args)
+    return query(q)
   end
   def insert(tbl,h)
     query("insert into #{tbl} set " + setstmt(h) )
@@ -683,7 +683,10 @@ end
 
 # replace each ? to each args
 def escf(fmt,*args)
-  raise "escf: arg mismatch" if fmt.count("?") != args.size
+  return fmt if args.size==0 
+
+  argneed = fmt.count("?")
+  raise "escf: arg number mismatch. fmt has #{argneed}, #{args.size} given. fmt:#{fmt}" if argneed != args.size
   ind=0
   out = fmt.gsub("?").each do 
     arg = args[ind]
@@ -698,7 +701,7 @@ def escf(fmt,*args)
 end
 
 
-def dumplocal(b)  # usage: argdump(binding)
+def dumplocal(b)  # usage: dumplocal(binding)
   out = b.eval( <<EOF
 __s = ""
 local_variables.each do |name| 
