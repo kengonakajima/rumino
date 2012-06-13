@@ -361,21 +361,6 @@ $MIMETypes = {
   "wav" => "audio/wav",
   "mp3" => "audio/mp3"
 }
-class MiniWebRequest
-  def initialize(req)
-    @req = req
-    @data = {}
-  end
-  def set(name,val)
-    @data[name]=val
-  end
-  def get(name)
-    return @data[name]
-  end
-  def method_missing(name,*args)
-    @req.send(name,*args)
-  end
-end
 
 class MiniWeb
   def initialize(h)
@@ -447,7 +432,6 @@ class MiniWeb
         end
         return self.sendRaw( code, mtype, data )
       end
-      req = MiniWebRequest.new(req)
       begin
         if req.request_method == "POST" then 
           if @recvpost then 
@@ -465,6 +449,7 @@ class MiniWeb
           @srv.shutdown()
           p "MiniWeb: shutdown() called on port #{@port}"
         end
+        res.body = "error"
       end
     end 
 
@@ -479,13 +464,12 @@ class MiniWeb
 end
 
 def httpRespond(req,res,deftype)
+  objectify(req)
   instance = deftype.new
   ary = req.path.split("/")
   ary.shift
   fname = ary[0]
-  args = ary.dup
-  args.shift
-  req.set( "paths", args )
+  req.paths = ary.dup.shift
   def req.paths()
     return @data["paths"]
   end
@@ -784,7 +768,11 @@ class #{cls}
       if #{cls}.respond_to?("[]") then
         return v = self[name]
       else
-        return @data[name]
+         if #{cls}.respond_to?(name) then
+          return self.send(name)
+        else
+          return @data[name]
+        end
       end
     end
     return nil
