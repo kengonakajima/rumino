@@ -2,7 +2,9 @@ require "./rumino.rb"
 
 p "start"
 
-
+monitorFiles( ["*.rb","Makefile" ] ) do
+  assert( false ) #never
+end
 
 # hash
 h={"a"=>1,"b"=>2}
@@ -202,5 +204,5 @@ assert( dumplocaltest(1,"2",3) == "a:1(Fixnum)\tb:2(String)\tc:3(Fixnum)\t\n" )
 assert( esc("hello\"") == "hello\\\"" )
 assert( my.esc("hello\"") == "hello\\\"" )
 
-p "done"
 
+p "done"

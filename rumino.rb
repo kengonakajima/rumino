@@ -61,7 +61,7 @@ def differ(h1,h2)
 end
 
 # globs = [ "*.rb", "js/*.js", .. ]
-def monitorFiles(globs, proc )
+def monitorFiles(globs, &blk )
   t = Thread.new do 
     changed = []
     lastmtime={}
@@ -86,7 +86,7 @@ def monitorFiles(globs, proc )
         end
       end
       if changed.size > 0 then 
-        proc.call( changed )
+        blk.call( changed )
         changed = []
       end
     end
@@ -390,6 +390,7 @@ end
 
 class MiniWeb
   def initialize(h)
+    p "MiniWeb:", h.to_json
     @global = false
 
     @conf = h
@@ -405,6 +406,8 @@ class MiniWeb
       @shutdownOnException = false
     end
 
+    @recvpost = nil
+    @recvget = nil
   end
 
   def onPOST(&blk)
@@ -414,23 +417,6 @@ class MiniWeb
     @recvget = blk
   end
 
-  def terminate()
-    cmd("rm -f #{@pidfile}")
-    @srv.shutdown()
-  end
-
-  def useGlobalTrapAndPidFile()
-    if $miniweb_global_service then
-      raise "MiniWeb: cannot use 2 instances of MiniWeb global service in a process"
-    end
-    if ! @conf["pidFile"] then 
-      raise "MiniWeb: useGlobalTrapAndPidFile: 'pidFile' required in config"
-    end
-    @pidpath = @conf["pidFile"]
-    @global = true
-    trap("INT"){terminate()}
-    trap("TERM"){terminate()}
-  end
 
   def start()
     p "MiniWeb: starting server: #{@port} #{@bindaddr}"
@@ -449,7 +435,7 @@ class MiniWeb
         self.sendRaw( 200, "application/json", h.to_json )
       end
       def res.sendHTML(t)
-        res.sendRaw( 200, "text/html", t)
+        self.sendRaw( 200, "text/html", t)
       end
 
       def res.sendFile(path)
@@ -530,7 +516,8 @@ def httpServeStaticFiles(req,res,docroot,exts)
   exts.each do |ext|
     return res.sendFile("#{docroot}#{req.path}") if req.path =~ /\.#{ext}$/ 
   end
-  return res.sendRaw( 404, "text/plain", "not found" )
+  res.sendRaw( 404, "text/plain", "not found" )
+  return false
 end
 
 
@@ -756,4 +743,19 @@ def setTimeout(n,&blk)
     blk.call()
   end
   return t
+end
+
+# exit process and clean it
+
+def usePidfile(pidfile)
+  return if !pidfile 
+  $_rumino_pidpath = pidfile
+  trap("INT") do exitCleanPidfile(1) end
+  trap("TERM") do exitCleanPidFile(1) end
+end
+
+def exitCleanPidfile(code)
+  cmd("rm -f #{$_rumino_pidpath}")  
+  p "call exit!()"
+  exit!(code)
 end
