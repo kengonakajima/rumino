@@ -6,10 +6,18 @@ p "start"
 
 # hash
 h={"a"=>1,"b"=>2}
+h.d = 5
 assert(h.a==1)
 assert(h.b==2)
 assert(h.c==nil)
+assert(h.d==5)
 
+class Something
+end
+objectify(Something)
+o = Something.new
+o.aaa = 1
+assert(o.aaa==1)
 
 # timer
 p unixtime( "2012-06-10 11:11:11" ) 

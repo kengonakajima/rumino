@@ -9,17 +9,6 @@ require "erb"
 require "net/smtp"
 require "webrick"
 
-class Hash
-  # to get rid of deprecation warnings..
-  def id()
-    return self["id"]
-  end
-  def method_missing(name,*args)
-#    print( "NN:", name, ",", self, "\n")
-    v = self[name.to_s]
-    return v
-  end
-end
 
 
 
@@ -717,11 +706,6 @@ def escf(fmt,*args)
 end
 
 
-# suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
-def typeof(o)
-  return o.class
-end
-
 def dumplocal(b)  # usage: argdump(binding)
   out = b.eval( <<EOF
 __s = ""
@@ -757,3 +741,53 @@ def setTimeout(n,&blk)
   end
   return t
 end
+
+
+#
+#
+#
+
+# suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
+def typeof(o)
+  return o.class
+end
+
+
+def objectify(cls)
+  if typeof(cls) != Class then
+    cls = typeof(cls)
+  end
+  src = <<EOF
+class #{cls}
+  def id()
+    return self["id"]
+  end
+  # for non-hash classes
+  def method_missing(name,*args)
+    name = name.to_s
+#    p( "MM: '", name,"'",typeof(name))
+    if name =~ /^(.*)\=$/ then # set
+      methname = $1
+      if #{cls}.respond_to?("[]") then
+        self[methname] = args[0]
+      else
+        if @data==nil then @data={} end
+        @data[methname] = args[0]
+      end
+      return args[0]
+    else # get
+      if #{cls}.respond_to?("[]") then
+        return v = self[name]
+      else
+        return @data[name]
+      end
+    end
+    return nil
+  end
+end
+EOF
+  eval(src)
+       
+end
+
+objectify(Hash)
