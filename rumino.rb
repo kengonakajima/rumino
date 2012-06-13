@@ -443,13 +443,20 @@ class MiniWeb
           end
         end
       rescue
-        if @shutdownOnException then
-          p "MiniWeb: caught exception, shutting down: #{$!}"
-          $!.backtrace.each do |e| p(e) end
-          @srv.shutdown()
-          p "MiniWeb: shutdown() called on port #{@port}"
+        t = typeof($!).to_s
+        if t =~ /^WEBrick::HTTPStatus/ then
+          res.status = $!.to_i
+          res["Content-Type"]="text/html"
+          p "webrick redirects.."
+        else
+          if @shutdownOnException then
+            p "MiniWeb: caught exception, shutting down: #{$!}"
+            $!.backtrace.each do |e| p(e) end
+              @srv.shutdown()
+            p "MiniWeb: shutdown() called on port #{@port}"
+          end
+          res.body = "error"
         end
-        res.body = "error"
       end
     end 
 
