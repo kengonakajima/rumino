@@ -496,7 +496,9 @@ def httpRespond(req,res,deftype)
       fname = "default"
     end
   end
+  instance.send( "before", req,res ) if instance.respond_to?( "before" )
   instance.send( fname, req,res )
+  instance.send( "after", req,res ) if instance.respond_to?( "after" )
 end
 
 def httpServeStaticFiles(req,res,docroot,exts)
