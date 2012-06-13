@@ -355,6 +355,23 @@ def shortdate(sec)
 end
 
 # argv : json conf file paths (merged)
+$MIMETypes = {
+  "txt" => "text/plain",
+  "md" => "text/plain",
+  "js" => "text/javascript",
+  "json" => "application/json",
+  "css" => "text/css",
+  "png" => "image/png",
+  "jpg" => "image/jpeg",
+  "jpeg" => "image/jpeg",
+  "gif" => "image/gif",
+  "bmp" => "image/bmp",  
+  "html" => "text/html",
+  "htm" => "text/html",
+  "pdf" => "application/pdf",
+  "wav" => "audio/wav",
+  "mp3" => "audio/mp3"
+}
 class MiniWebRequest
   def initialize(req)
     @req = req
@@ -372,10 +389,9 @@ class MiniWebRequest
 end
 
 class MiniWeb
-  def initialize()
+  def initialize(h)
     @global = false
-  end
-  def configure(h)
+
     @conf = h
     @bindaddr = @conf["bindAddress"]
     if ! @bindaddr then @bindaddr = "127.0.0.1" end
@@ -388,6 +404,7 @@ class MiniWeb
     if @conf["shutdownOnException"] == false then 
       @shutdownOnException = false
     end
+
   end
 
   def onPOST(&blk)
@@ -423,17 +440,37 @@ class MiniWeb
                                      :Port => @port
                                    })
     @srv.mount_proc("/") do |req,res|
+      def res.sendRaw(code,ct,data)
+        self.status = code
+        self.body = data
+        self["Content-Type"] = ct
+      end
       def res.sendJSON(h)
-        self.body = h.to_json
-        self["Content-Type"] = "application/json"
+        self.sendRaw( 200, "application/json", h.to_json )
       end
       def res.sendHTML(t)
-        self.body = t
-        self["Content-Type"] = "text/html"
+        res.sendRaw( 200, "text/html", t)
       end
-      def res.sendRaw(d)
-        self.body = d
-        self["Content-Type"] = "text/plain"
+
+      def res.sendFile(path)
+        mtype = nil
+        $MIMETypes.each do |ext,mt|
+          if path =~ /\.#{ext}$/ then
+            mtype = mt
+            break
+          end
+        end
+        mtype = "text/plain" if mtype == nil 
+          
+        code = nil
+        data = readFile(path)
+        if data 
+          code = 200 
+        else
+          code = 404
+          data = "not found"
+        end
+        return self.sendRaw( code, mtype, data )
       end
       req = MiniWebRequest.new(req)
       begin
@@ -477,10 +514,24 @@ def httpRespond(req,res,deftype)
   def req.paths()
     return @data["paths"]
   end
+  if !fname or fname=="" then
+    fname = "default"
+  else
+    if ! instance.methods.include?(fname) then
+      fname = "default"
+    end
+  end
   instance.send( fname, req,res )
-
 end
 
+def httpServeStaticFiles(req,res,docroot,exts)
+  return false if req.path =~ /\?/ 
+  return false if req.path =~ /\.\./ 
+  exts.each do |ext|
+    return res.sendFile("#{docroot}#{req.path}") if req.path =~ /\.#{ext}$/ 
+  end
+  return res.sendRaw( 404, "text/plain", "not found" )
+end
 
 
 class MysqlWrapper
