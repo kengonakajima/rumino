@@ -470,6 +470,17 @@ class MiniWeb
   end
 end
 
+def httpQueryStringToHash(qstr)
+  if !qstr then return nil end 
+  h = {}
+  ary = qstr.split("&")
+  ary.each do |p|
+    a,b = p.split("=")
+    h[a]=b
+  end
+  return h
+end
+
 def httpRespond(req,res,deftype)
   objectify(req)
   instance = deftype.new
@@ -631,14 +642,15 @@ class MysqlWrapper
     return query(q,*args)
   end
   def insert(tbl,h)
-    q = "insert into #{tbl} set " + setstmt(h)
-    query(q)
-    q = "select last_insert_id() as id"
-    res = query(q)
-    res.each do |row|
-      return row["id"].to_i
+    query("insert into #{tbl} set " + setstmt(h) )
+    id = queryScalar("select last_insert_id() as id")
+    assert(id)
+    id=id.to_i
+    if id > 0 then # this table ha auto_increment!
+      return query1( "select * from #{tbl} where id=?",id)
+    else
+      return h
     end
-    return nil
   end
   def ensureColumns(name,colnames)
     argh={}
