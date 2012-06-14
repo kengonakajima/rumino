@@ -20,6 +20,17 @@ objectify(Something)
 o = Something.new
 o.aaa = 1
 assert(o.aaa==1)
+h2={"a"=>1,"b"=>2,"c"=>"aa","d"=>9}
+h3=h2.pick( "a",:b )
+assert(h3.a==1)
+assert(h3.b==2)
+assert(h3.c==nil)
+assert(h3.d==nil)
+h3=h2.pick([:b,:c],:d)
+assert(h3.a==nil)
+assert(h3.b==2)
+assert(h3.c=="aa")
+assert(h3.d==9)
 
 # timer
 p unixtime( "2012-06-10 11:11:11" ) 

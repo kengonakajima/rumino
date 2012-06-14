@@ -775,6 +775,24 @@ end
 #
 #
 
+class Hash
+  def pick(*args)
+    out={}
+    args.each do |arg|
+      if typeof(arg)==Array then
+        arg.each do |name|
+          name = name.to_s
+          if self[name] then out[name]=self[name] end 
+        end
+      else
+        name = arg.to_s
+        if self[name] then out[name]=self[name] end 
+      end
+    end
+    return out
+  end
+end
+
 # suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
 def typeof(o)
   return o.class
