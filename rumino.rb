@@ -630,7 +630,7 @@ class MysqlWrapper
       k = k.to_s
       if typeof(v) == Fixnum or typeof(v) == Float then 
         sets.push( "#{k}= #{v}" )
-      elsif typeof(v) == String then
+      elsif typeof(v) == String or typeof(v) == WEBrick::HTTPUtils::FormData then
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
       elsif typeof(v) == TrueClass then 
