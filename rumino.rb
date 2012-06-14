@@ -319,7 +319,14 @@ end
 def unixtime(date)
   return Time::parse(date).utc.to_i
 end
-
+def killTZ(datestr)
+  datestr =~ /(.*)-[0-9][0-9]:[0-9][0-9]/ 
+  if $1 then
+    return $1
+  else
+    return datestr
+  end
+end
 
 def nowdate()  # mysql datetime format
   todate(Time.now())
