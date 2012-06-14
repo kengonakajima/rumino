@@ -119,10 +119,11 @@ my.query( "create table if not exists rumino_test ( id int not null primary key 
 #my.query( "insert into rumino_test set name='aa', createdAt=now() " )
 
 nowt = now()
-newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
-newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
-newid = my.insert( "rumino_test", { "name"=>"aa", "createdAt"=>todate(nowt)})
-assert(newid==3)
+newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+newobj = my.insert( "rumino_test", { "name"=>"aa", "createdAt"=>todate(nowt)})
+
+assert(newobj.id==3)
 cnt = my.queryScalar( "select count(*) from rumino_test" )
 assert(cnt==3)
 cnt = my.count( "rumino_test where id>=2")

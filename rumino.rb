@@ -642,16 +642,25 @@ class MysqlWrapper
     q = "update #{tbl} set " + setstmt(h) + " where " + escf(cond,*args)
     return query(q)
   end
+  def hasId(tbl)
+    res = query( "explain #{tbl}")
+    res.each do |ent|
+      fn = ent["Field"]
+      return true if fn == "id" 
+    end
+    return false
+  end
   def insert(tbl,h)
     query("insert into #{tbl} set " + setstmt(h) )
-    id = queryScalar("select last_insert_id() as id")
-    assert(id)
-    id=id.to_i
-    if id > 0 then # this table ha auto_increment!
-      return query1( "select * from #{tbl} where id=?",id)
-    else
-      return h
+    if hasId(tbl) then
+      id = queryScalar("select last_insert_id() as id")
+      assert(id)
+      id=id.to_i
+      if id > 0 then # this table ha auto_increment!
+        return query1( "select * from #{tbl} where id=?",id)
+      end
     end
+    return h
   end
   def ensureColumns(name,colnames)
     argh={}
