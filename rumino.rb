@@ -8,7 +8,7 @@ require "fileutils"
 require "erb"
 require "net/smtp"
 require "webrick"
-
+require "cgi"
 
 
 
