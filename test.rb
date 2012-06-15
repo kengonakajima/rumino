@@ -2,19 +2,55 @@ require "./rumino.rb"
 
 p "start"
 
-
+monitorFiles( ["*.rb","Makefile" ] ) do
+  assert( false ) #never
+end
 
 # hash
 h={"a"=>1,"b"=>2}
+h.d = 5
 assert(h.a==1)
 assert(h.b==2)
 assert(h.c==nil)
+assert(h.d==5)
 
+class Something
+end
+objectify(Something)
+o = Something.new
+o.aaa = 1
+assert(o.aaa==1)
+h2={"a"=>1,"b"=>2,"c"=>"aa","d"=>9}
+h3=h2.pick( "a",:b )
+assert(h3.a==1)
+assert(h3.b==2)
+assert(h3.c==nil)
+assert(h3.d==nil)
+h3=h2.pick([:b,:c],:d)
+assert(h3.a==nil)
+assert(h3.b==2)
+assert(h3.c=="aa")
+assert(h3.d==9)
+
+h={ "a"=>10,"c"=>30, "b"=>20}
+sorted=h.valsort
+assert(sorted[0][0]=="a")
+assert(sorted[1][0]=="b")
+assert(sorted[2][0]=="c")
+assert(sorted[0][1]==10)
+assert(sorted[1][1]==20)
+assert(sorted[2][1]==30)
 
 # timer
 p unixtime( "2012-06-10 11:11:11" ) 
 assert( unixtime( "2012-06-10 11:11:11 UTC" ) == (1339294271+9*60*60) )
 
+# time
+s = killTZ( "2012-06-10 11:11:11-07:00" )
+assert( s == "2012-06-10 11:11:11" )
+s = killTZ( "2012-06-10 11:11:11" )
+p s
+assert( s == "2012-06-10 11:11:11" )
 # file 
 
 nt = nowi()
@@ -109,10 +145,11 @@ my.query( "create table if not exists rumino_test ( id int not null primary key 
 #my.query( "insert into rumino_test set name='aa', createdAt=now() " )
 
 nowt = now()
-newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
-newid = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
-newid = my.insert( "rumino_test", { "name"=>"aa", "createdAt"=>todate(nowt)})
-assert(newid==3)
+newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
+newobj = my.insert( "rumino_test", { "name"=>"aa", "createdAt"=>todate(nowt)})
+
+assert(newobj.id==3)
 cnt = my.queryScalar( "select count(*) from rumino_test" )
 assert(cnt==3)
 cnt = my.count( "rumino_test where id>=2")
@@ -202,5 +239,5 @@ assert( dumplocaltest(1,"2",3) == "a:1(Fixnum)\tb:2(String)\tc:3(Fixnum)\t\n" )
 assert( esc("hello\"") == "hello\\\"" )
 assert( my.esc("hello\"") == "hello\\\"" )
 
-p "done"
 
+p "done"

@@ -8,23 +8,7 @@ require "fileutils"
 require "erb"
 require "net/smtp"
 require "webrick"
-
-class Hash
-  # to get rid of deprecation warnings..
-  def id()
-    return self["id"]
-  end
-  def method_missing(name,*args)
-#    print( "NN:", name, ",", self, "\n")
-    v = self[name.to_s]
-    return v
-  end
-  def valsort()
-    return self.sort do |a,b| a[1] <=> b[1] end
-  end
-end
-
-
+require "cgi"
 
 def assert(x,*msg)
   if !x then 
@@ -64,7 +48,7 @@ def differ(h1,h2)
 end
 
 # globs = [ "*.rb", "js/*.js", .. ]
-def monitorFiles(globs, proc )
+def monitorFiles(globs, &blk )
   t = Thread.new do 
     changed = []
     lastmtime={}
@@ -89,7 +73,7 @@ def monitorFiles(globs, proc )
         end
       end
       if changed.size > 0 then 
-        proc.call( changed )
+        blk.call( changed )
         changed = []
       end
     end
@@ -333,7 +317,14 @@ end
 def unixtime(date)
   return Time::parse(date).utc.to_i
 end
-
+def killTZ(datestr)
+  datestr =~ /(.*)-[0-9][0-9]:[0-9][0-9]/ 
+  if $1 then
+    return $1
+  else
+    return datestr
+  end
+end
 
 def nowdate()  # mysql datetime format
   todate(Time.now())
@@ -358,27 +349,36 @@ def shortdate(sec)
 end
 
 # argv : json conf file paths (merged)
-class MiniWebRequest
-  def initialize(req)
-    @req = req
-    @data = {}
-  end
-  def set(name,val)
-    @data[name]=val
-  end
-  def get(name)
-    return @data[name]
-  end
-  def method_missing(name,*args)
-    @req.send(name,*args)
-  end
-end
+$MIMETypes = {
+  "txt" => "text/plain",
+  "md" => "text/plain",
+  "js" => "text/javascript",
+  "json" => "application/json",
+  "css" => "text/css",
+  "png" => "image/png",
+  "jpg" => "image/jpeg",
+  "jpeg" => "image/jpeg",
+  "gif" => "image/gif",
+  "bmp" => "image/bmp",  
+  "html" => "text/html",
+  "htm" => "text/html",
+  "pdf" => "application/pdf",
+  "wav" => "audio/wav",
+  "mp3" => "audio/mp3"
+}
 
-class MiniWeb
-  def initialize()
-    @global = false
+class MiniWebException < Exception
+  def initialize(s)
+    @msg = s
   end
-  def configure(h)
+  def to_s() return @msg end
+end
+ 
+class MiniWeb
+  def initialize(h)
+    p "MiniWeb:", h.to_json
+    @global = false
+
     @conf = h
     @bindaddr = @conf["bindAddress"]
     if ! @bindaddr then @bindaddr = "127.0.0.1" end
@@ -391,6 +391,9 @@ class MiniWeb
     if @conf["shutdownOnException"] == false then 
       @shutdownOnException = false
     end
+
+    @recvpost = nil
+    @recvget = nil
   end
 
   def onPOST(&blk)
@@ -400,23 +403,6 @@ class MiniWeb
     @recvget = blk
   end
 
-  def terminate()
-    cmd("rm -f #{@pidfile}")
-    @srv.shutdown()
-  end
-
-  def useGlobalTrapAndPidFile()
-    if $miniweb_global_service then
-      raise "MiniWeb: cannot use 2 instances of MiniWeb global service in a process"
-    end
-    if ! @conf["pidFile"] then 
-      raise "MiniWeb: useGlobalTrapAndPidFile: 'pidFile' required in config"
-    end
-    @pidpath = @conf["pidFile"]
-    @global = true
-    trap("INT"){terminate()}
-    trap("TERM"){terminate()}
-  end
 
   def start()
     p "MiniWeb: starting server: #{@port} #{@bindaddr}"
@@ -426,19 +412,42 @@ class MiniWeb
                                      :Port => @port
                                    })
     @srv.mount_proc("/") do |req,res|
+      def res.sendRaw(code,ct,data)
+        self.status = code
+        self.body = data
+        self["Content-Type"] = ct
+      end
       def res.sendJSON(h)
-        self.body = h.to_json
-        self["Content-Type"] = "application/json"
+        self.sendRaw( 200, "application/json", h.to_json )
+      end
+      def res.error(emsg)
+        self.sendJSON({ :message => emsg })
+        raise MiniWebException.new(emsg)
       end
       def res.sendHTML(t)
-        self.body = t
-        self["Content-Type"] = "text/html"
+        self.sendRaw( 200, "text/html", t)
       end
-      def res.sendRaw(d)
-        self.body = d
-        self["Content-Type"] = "text/plain"
+
+      def res.sendFile(path)
+        mtype = nil
+        $MIMETypes.each do |ext,mt|
+          if path =~ /\.#{ext}$/ then
+            mtype = mt
+            break
+          end
+        end
+        mtype = "text/plain" if mtype == nil 
+          
+        code = nil
+        data = readFile(path)
+        if data 
+          code = 200 
+        else
+          code = 404
+          data = "not found"
+        end
+        return self.sendRaw( code, mtype, data )
       end
-      req = MiniWebRequest.new(req)
       begin
         if req.request_method == "POST" then 
           if @recvpost then 
@@ -450,11 +459,19 @@ class MiniWeb
           end
         end
       rescue
-        if @shutdownOnException then
-          p "MiniWeb: caught exception, shutting down: #{$!}"
-          $!.backtrace.each do |e| p(e) end
-          @srv.shutdown()
-          p "MiniWeb: shutdown() called on port #{@port}"
+        t = typeof($!).to_s
+        if t =~ /^WEBrick::HTTPStatus/ then
+          res.status = $!.to_i
+          res["Content-Type"]="text/html"
+          p "webrick redirects.."
+        else
+          if @shutdownOnException then
+            p "MiniWeb: caught exception, shutting down: #{$!}"
+            $!.backtrace.each do |e| p(e) end
+              @srv.shutdown()
+            p "MiniWeb: shutdown() called on port #{@port}"
+          end
+          res.body = "error"
         end
       end
     end 
@@ -469,21 +486,49 @@ class MiniWeb
   end
 end
 
+def httpQueryStringToHash(qstr)
+  if !qstr then return nil end 
+  h = {}
+  ary = qstr.split("&")
+  ary.each do |p|
+    a,b = p.split("=")
+    h[a]=b
+  end
+  return h
+end
+
 def httpRespond(req,res,deftype)
+  objectify(req)
   instance = deftype.new
   ary = req.path.split("/")
   ary.shift
   fname = ary[0]
-  args = ary.dup
-  args.shift
-  req.set( "paths", args )
+  req.paths = ary.dup
+  req.paths.shift
   def req.paths()
     return @data["paths"]
   end
+  if !fname or fname=="" then
+    fname = "default"
+  else
+    if ! instance.methods.include?(fname) then
+      fname = "default"
+    end
+  end
+  instance.send( "before", req,res ) if instance.respond_to?( "before" )
   instance.send( fname, req,res )
-
+  instance.send( "after", req,res ) if instance.respond_to?( "after" )
 end
 
+def httpServeStaticFiles(req,res,docroot,exts)
+  return false if req.path =~ /\?/ 
+  return false if req.path =~ /\.\./ 
+  exts.each do |ext|
+    return res.sendFile("#{docroot}#{req.path}") if req.path =~ /\.#{ext}$/ 
+  end
+  res.sendRaw( 404, "text/plain", "not found" )
+  return false
+end
 
 
 class MysqlWrapper
@@ -594,7 +639,7 @@ class MysqlWrapper
       k = k.to_s
       if typeof(v) == Fixnum or typeof(v) == Float then 
         sets.push( "#{k}= #{v}" )
-      elsif typeof(v) == String then
+      elsif typeof(v) == String or typeof(v) == WEBrick::HTTPUtils::FormData then
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
       elsif typeof(v) == TrueClass then 
@@ -610,18 +655,28 @@ class MysqlWrapper
     return sets.join(",")
   end
   def update(tbl,h,cond,*args)
-    q = "update #{tbl} set " + setstmt(h) + " where " + cond
-    return query(q,*args)
+    q = "update #{tbl} set " + setstmt(h) + " where " + escf(cond,*args)
+    return query(q)
+  end
+  def hasId(tbl)
+    res = query( "explain #{tbl}")
+    res.each do |ent|
+      fn = ent["Field"]
+      return true if fn == "id" 
+    end
+    return false
   end
   def insert(tbl,h)
-    q = "insert into #{tbl} set " + setstmt(h)
-    query(q)
-    q = "select last_insert_id() as id"
-    res = query(q)
-    res.each do |row|
-      return row["id"].to_i
+    query("insert into #{tbl} set " + setstmt(h) )
+    if hasId(tbl) then
+      id = queryScalar("select last_insert_id() as id")
+      assert(id)
+      id=id.to_i
+      if id > 0 then # this table ha auto_increment!
+        return query1( "select * from #{tbl} where id=?",id)
+      end
     end
-    return nil
+    return h
   end
   def ensureColumns(name,colnames)
     argh={}
@@ -654,7 +709,10 @@ end
 
 # replace each ? to each args
 def escf(fmt,*args)
-  raise "escf: arg mismatch" if fmt.count("?") != args.size
+  return fmt if args.size==0 
+
+  argneed = fmt.count("?")
+  raise "escf: arg number mismatch. fmt has #{argneed}, #{args.size} given. fmt:#{fmt}" if argneed != args.size
   ind=0
   out = fmt.gsub("?").each do 
     arg = args[ind]
@@ -669,12 +727,7 @@ def escf(fmt,*args)
 end
 
 
-# suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
-def typeof(o)
-  return o.class
-end
-
-def dumplocal(b)  # usage: argdump(binding)
+def dumplocal(b)  # usage: dumplocal(binding)
   out = b.eval( <<EOF
 __s = ""
 local_variables.each do |name| 
@@ -709,3 +762,95 @@ def setTimeout(n,&blk)
   end
   return t
 end
+
+
+# exit process and clean it
+
+def usePidfile(pidfile)
+  return if !pidfile 
+  $_rumino_pidpath = pidfile
+  trap("INT") do exitCleanPidfile(1) end
+  trap("TERM") do exitCleanPidFile(1) end
+end
+
+def exitCleanPidfile(code)
+  cmd("rm -f #{$_rumino_pidpath}")  
+  p "call exit!()"
+  exit!(code)
+end
+
+
+#
+#
+#
+
+class Hash
+  def pick(*args)
+    out={}
+    args.each do |arg|
+      if typeof(arg)==Array then
+        arg.each do |name|
+          name = name.to_s
+          if self[name] then out[name]=self[name] end 
+        end
+      else
+        name = arg.to_s
+        if self[name] then out[name]=self[name] end 
+      end
+    end
+    return out
+  end
+  def valsort()
+    return self.sort do |a,b| a[1] <=> b[1] end
+  end
+end
+
+# suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
+def typeof(o)
+  return o.class
+end
+
+
+def objectify(cls)
+  if typeof(cls) != Class then
+    cls = typeof(cls)
+  end
+  src = <<EOF
+class #{cls}
+  def id()
+    return self["id"]
+  end
+  # for non-hash classes
+  def method_missing(name,*args)
+    name = name.to_s
+#    p( "MM: '", name,"'",typeof(name))
+    if name =~ /^(.*)\=$/ then # set
+      methname = $1
+      if #{cls}.respond_to?("[]") then
+        self[methname] = args[0]
+      else
+        if @data==nil then @data={} end
+        @data[methname] = args[0]
+      end
+      return args[0]
+    else # get
+      if #{cls}.respond_to?("[]") then
+        return v = self[name]
+      else
+         if #{cls}.respond_to?(name) then
+          return self.send(name)
+        else
+          return @data[name]
+        end
+      end
+    end
+    return nil
+  end
+end
+EOF
+  eval(src)
+       
+end
+
+objectify(Hash)
+
