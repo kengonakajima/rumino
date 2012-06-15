@@ -369,6 +369,13 @@ $MIMETypes = {
   "mp3" => "audio/mp3"
 }
 
+class MiniWebException < Exception
+  def initialize(s)
+    @msg = s
+  end
+  def to_s() return @msg end
+end
+ 
 class MiniWeb
   def initialize(h)
     p "MiniWeb:", h.to_json
@@ -414,6 +421,10 @@ class MiniWeb
       end
       def res.sendJSON(h)
         self.sendRaw( 200, "application/json", h.to_json )
+      end
+      def res.error(emsg)
+        self.sendJSON({ :message => emsg })
+        raise MiniWebException.new(emsg)
       end
       def res.sendHTML(t)
         self.sendRaw( 200, "text/html", t)
