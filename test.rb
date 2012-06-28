@@ -7,12 +7,15 @@ monitorFiles( ["*.rb","Makefile" ] ) do
 end
 
 # hash
-h={"a"=>1,"b"=>2}
+h={"a"=>1,"b"=>2,:e=>3}
 h.d = 5
 assert(h.a==1)
 assert(h.b==2)
 assert(h.c==nil)
 assert(h.d==5)
+assert(h.e==3)
+h.e = nil
+assert(h.e==nil)
 
 class Something
 end
@@ -20,6 +23,9 @@ objectify(Something)
 o = Something.new
 o.aaa = 1
 assert(o.aaa==1)
+o.aaa = nil
+assert(o.aaa==nil)
+
 h2={"a"=>1,"b"=>2,"c"=>"aa","d"=>9}
 h3=h2.pick( "a",:b )
 assert(h3.a==1)

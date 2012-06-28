@@ -834,6 +834,9 @@ class #{cls}
     if name =~ /^(.*)\=$/ then # set
       methname = $1
       if #{cls}.respond_to?("[]") then
+        if self[methname.to_sym] then
+          self[methname.to_sym] = nil
+        end
         self[methname] = args[0]
       else
         if @data==nil then @data={} end
@@ -842,12 +845,20 @@ class #{cls}
       return args[0]
     else # get
       if #{cls}.respond_to?("[]") then
-        return v = self[name]
+        v = self[name]
+        if !v then
+          v = self[name.to_sym]
+        end
+        return v
       else
          if #{cls}.respond_to?(name) then
           return self.send(name)
-        else
-          return @data[name]
+         else
+           v = @data[name]
+           if !v then
+             v = @data[name.to_sym]
+           end
+          return v
         end
       end
     end
