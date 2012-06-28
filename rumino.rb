@@ -16,7 +16,6 @@ def assert(x,*msg)
   end
 end
 
-
 def pathdate()
   t = Time.now
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
@@ -45,6 +44,7 @@ end
 def cmdq(s)
   return `#{s}`
 end
+
 
 def differ(h1,h2)
   return Marshal.dump(h1) != Marshal.dump(h2)
