@@ -41,6 +41,14 @@ assert(sorted[0][1]==10)
 assert(sorted[1][1]==20)
 assert(sorted[2][1]==30)
 
+# string
+p sha1("hello")
+p md5("hello")
+
+assert( sha1("hello") == "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d" )
+assert( md5("hello") == "5d41402abc4b2a76b9719d911017c592" )
+    
+
 # timer
 p unixtime( "2012-06-10 11:11:11" ) 
 assert( unixtime( "2012-06-10 11:11:11 UTC" ) == (1339294271+9*60*60) )

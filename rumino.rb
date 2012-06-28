@@ -47,6 +47,13 @@ def differ(h1,h2)
   return Marshal.dump(h1) != Marshal.dump(h2)
 end
 
+def md5(s)
+  return Digest::MD5.new.update(s)
+end
+def sha1(s)
+  return Digest::SHA1.hexdigest(s)
+end
+
 # globs = [ "*.rb", "js/*.js", .. ]
 def monitorFiles(globs, &blk )
   t = Thread.new do 
