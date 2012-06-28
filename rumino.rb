@@ -42,6 +42,9 @@ def cmd(s)
   p(s)
   return `#{s}`
 end
+def cmdq(s)
+  return `#{s}`
+end
 
 def differ(h1,h2)
   return Marshal.dump(h1) != Marshal.dump(h2)
