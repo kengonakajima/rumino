@@ -10,8 +10,6 @@ require "net/smtp"
 require "webrick"
 require "cgi"
 
-
-
 def assert(x,*msg)
   if !x then 
     raise msg.join()
@@ -47,6 +45,13 @@ end
 
 def differ(h1,h2)
   return Marshal.dump(h1) != Marshal.dump(h2)
+end
+
+def md5(s)
+  return Digest::MD5.new.update(s)
+end
+def sha1(s)
+  return Digest::SHA1.hexdigest(s)
 end
 
 # globs = [ "*.rb", "js/*.js", .. ]
@@ -319,7 +324,14 @@ end
 def unixtime(date)
   return Time::parse(date).utc.to_i
 end
-
+def killTZ(datestr)
+  datestr =~ /(.*)-[0-9][0-9]:[0-9][0-9]/ 
+  if $1 then
+    return $1
+  else
+    return datestr
+  end
+end
 
 def nowdate()  # mysql datetime format
   todate(Time.now())
@@ -362,6 +374,13 @@ $MIMETypes = {
   "mp3" => "audio/mp3"
 }
 
+class MiniWebException < Exception
+  def initialize(s)
+    @msg = s
+  end
+  def to_s() return @msg end
+end
+ 
 class MiniWeb
   def initialize(h)
     p "MiniWeb:", h.to_json
@@ -407,6 +426,10 @@ class MiniWeb
       end
       def res.sendJSON(h)
         self.sendRaw( 200, "application/json", h.to_json )
+      end
+      def res.error(emsg)
+        self.sendJSON({ :message => emsg })
+        raise MiniWebException.new(emsg)
       end
       def res.sendHTML(t)
         self.sendRaw( 200, "text/html", t)
@@ -623,7 +646,7 @@ class MysqlWrapper
       k = k.to_s
       if typeof(v) == Fixnum or typeof(v) == Float then 
         sets.push( "#{k}= #{v}" )
-      elsif typeof(v) == String then
+      elsif typeof(v) == String or typeof(v) == WEBrick::HTTPUtils::FormData then
         vv = esc( v.to_s )
         sets.push( "#{k}= '#{vv}'" )
       elsif typeof(v) == TrueClass then 
@@ -767,6 +790,27 @@ end
 #
 #
 #
+
+class Hash
+  def pick(*args)
+    out={}
+    args.each do |arg|
+      if typeof(arg)==Array then
+        arg.each do |name|
+          name = name.to_s
+          if self[name] then out[name]=self[name] end 
+        end
+      else
+        name = arg.to_s
+        if self[name] then out[name]=self[name] end 
+      end
+    end
+    return out
+  end
+  def valsort()
+    return self.sort do |a,b| a[1] <=> b[1] end
+  end
+end
 
 # suck: at the last of file... to avoid emacs ruby-mode bug of keyword 'class' !
 def typeof(o)

@@ -20,11 +20,45 @@ objectify(Something)
 o = Something.new
 o.aaa = 1
 assert(o.aaa==1)
+h2={"a"=>1,"b"=>2,"c"=>"aa","d"=>9}
+h3=h2.pick( "a",:b )
+assert(h3.a==1)
+assert(h3.b==2)
+assert(h3.c==nil)
+assert(h3.d==nil)
+h3=h2.pick([:b,:c],:d)
+assert(h3.a==nil)
+assert(h3.b==2)
+assert(h3.c=="aa")
+assert(h3.d==9)
+
+h={ "a"=>10,"c"=>30, "b"=>20}
+sorted=h.valsort
+assert(sorted[0][0]=="a")
+assert(sorted[1][0]=="b")
+assert(sorted[2][0]=="c")
+assert(sorted[0][1]==10)
+assert(sorted[1][1]==20)
+assert(sorted[2][1]==30)
+
+# string
+p sha1("hello")
+p md5("hello")
+
+assert( sha1("hello") == "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d" )
+assert( md5("hello") == "5d41402abc4b2a76b9719d911017c592" )
+    
 
 # timer
 p unixtime( "2012-06-10 11:11:11" ) 
 assert( unixtime( "2012-06-10 11:11:11 UTC" ) == (1339294271+9*60*60) )
 
+# time
+s = killTZ( "2012-06-10 11:11:11-07:00" )
+assert( s == "2012-06-10 11:11:11" )
+s = killTZ( "2012-06-10 11:11:11" )
+p s
+assert( s == "2012-06-10 11:11:11" )
 # file 
 
 nt = nowi()
