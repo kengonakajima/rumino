@@ -9,6 +9,7 @@ require "erb"
 require "net/smtp"
 require "webrick"
 require "cgi"
+require "pp"
 
 def assert(x,*msg)
   if !x then 
@@ -430,6 +431,9 @@ class MiniWeb
       def res.sendJSON(h)
         self.sendRaw( 200, "application/json", h.to_json )
       end
+      def res.sendPPHTML(h)
+        self.sendRaw( 200, "text/html", "<html><body><pre>" + PP.pp(h,"") + "</pre></body></html>" )
+      end
       def res.error(emsg)
         self.sendJSON({ :message => emsg })
         raise MiniWebException.new(emsg)
@@ -437,6 +441,7 @@ class MiniWeb
       def res.sendHTML(t)
         self.sendRaw( 200, "text/html", t)
       end
+
 
       def res.sendFile(path)
         mtype = nil
