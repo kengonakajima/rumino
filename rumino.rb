@@ -824,6 +824,38 @@ def exitCleanPidfile(code)
 end
 
 
+class Curl
+  def initialize(prefix)
+    @prefix = prefix
+  end
+  def get(path)
+    path = URI.escape(path)
+    cmd = "curl -s \"#{@prefix}#{path}\""
+    STDERR.print "CURL:", cmd, "\n"
+    return `#{cmd}`
+  end
+  def post(path,data)
+    STDERR.print "POST: PATH=#{path} DATA=#{data}\n"
+    data = URI.escape(data)
+    cmd = "curl -s -d \"#{data}\" \"#{@prefix}#{path}\""
+    return `#{cmd}`
+  end
+  def getJSON(path)
+    s = self.get(path)
+    j = JSON.parse(s)
+    return j
+  end
+
+end
+
+
+$__genTmpPath_cnt =0
+def genTmpPath()
+  $__genTmpPath_cnt += 1
+  return "/tmp/_tmp_#{getpid()}_#{nowi()}_#{$__genTmpPath_cnt}"
+end
+
+
 #
 #
 #
@@ -908,4 +940,6 @@ EOF
 end
 
 objectify(Hash)
+
+
 
