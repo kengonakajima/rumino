@@ -29,6 +29,10 @@ def prt(*ary)
 end
 
 
+def pp_s(h)
+  return PP.pp(h,"")
+end
+
 def p(*ary)
   s = "[",Time.now.strftime("%Y-%m-%d %H:%M:%S"),"] ",ary.join(),"\n"
   STDERR.print(s)
@@ -432,7 +436,7 @@ class MiniWeb
         self.sendRaw( 200, "application/json", h.to_json )
       end
       def res.sendPPHTML(h)
-        self.sendRaw( 200, "text/html", "<html><body><pre>" + PP.pp(h,"") + "</pre></body></html>" )
+        self.sendRaw( 200, "text/html", "<html><body><pre>" + pp_s(h) + "</pre></body></html>" )
       end
       def res.error(emsg)
         self.sendJSON({ :message => emsg })
