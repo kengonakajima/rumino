@@ -677,6 +677,7 @@ class MysqlWrapper
     q = "update #{tbl} set " + setstmt(h) + " where " + escf(cond,*args)
     return query(q)
   end
+
   def hasId(tbl)
     res = query( "explain #{tbl}")
     res.each do |ent|
@@ -685,6 +686,9 @@ class MysqlWrapper
     end
     return false
   end
+#  def replace(tbl,h)
+#    query("replace into #{tbl} set " + setstmt(h) )
+#  end
   def insert(tbl,h)
     query("insert into #{tbl} set " + setstmt(h) )
     if hasId(tbl) then
