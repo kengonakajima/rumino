@@ -230,15 +230,13 @@ assert(v==0)
 # ensureColumns
 my.query( "drop table if exists rumino_test_ens" )
 my.query( "create table rumino_test_ens ( v int, name char(100), age int )" )
-assert( my.ensureColumns( "rumino_test_ens", [ "v","name", "age" ] ) )
-e=false
-begin
-  my.ensureColumns( "rumino_test_ens", [ "v","name", :age, "causeserror" ] )
-rescue
-  p "expected:", $!
-  e=true
-end
-assert(e)
+confary = [  [:v,"int"],[:name,"char(100)",true], [:age,"int",true], [:nick,"char(100)",true] ]  
+assert( my.ensureTable( "rumino_test_ens", confary ) )
+assert( ! my.ensureTable( "rumino_test_ens", confary ) )
+my.query( "insert into rumino_test_ens set nick='ringo'")
+nick = my.queryScalar("select nick from rumino_test_ens where nick='ringo'")
+assert(nick=="ringo")
+
 
 #
 def dumplocaltest(a,b,c)

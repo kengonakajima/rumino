@@ -688,26 +688,60 @@ class MysqlWrapper
     end
     return h
   end
-  def ensureColumns(name,colnames)
-    argh={}
-    colnames.each do |nm| argh[nm.to_s]=true end
-    res = query( "explain #{name}")
+
+  def ensureTable(name, confary)
+    cols={}
+    inds={}
+    confary.each do |ent|
+      colname,t,indflag = ent[0].to_s,ent[1],ent[2]
+      cols[colname] = t
+      if indflag then
+        inds[colname] = true
+      end
+    end
     
+    raise "no column" if cols.keys.size == 0
+    defs=[]
+    
+    cols.each do |k,v|
+      defs.push( "#{k} #{v}" )
+    end
+    inds.each do |k,v|
+      defs.push( "index(#{k})" )
+    end
+
+    q= "create table if not exists #{name} ( " + defs.join(",") + ")"
+    query(q)
+
+    # if no, alter table!
+    res = query("explain #{name}" )
+      
     dbh={}
     res.each do |ent|
       fn = ent["Field"]
       dbh[fn] = true
-      if ! argh[fn] then 
+      if ! cols[fn] then 
         p "WARNING: table '#{name}' has excess field '#{fn}'"
       end
     end
-    argh.keys.each do |k|
-      if !dbh[k] then 
-        raise "FATAL: table '#{name}' doesn't have field '#{k}'"
+
+    addcolumn = false
+    cols.each do |nm,t|  
+      if !dbh[nm] then
+        addcolumn = true
+        q = "alter table #{name} add column #{nm} #{t}"
+        p(q)
+        query(q)
+        if inds[nm] then
+          q = "alter table #{name} add index(#{nm})"
+          p(q)
+          query(q)
+        end
       end
     end
-    return true
+    return addcolumn
   end
+
   def method_missing(name,*args)
     @my.send(name,*args)
   end
