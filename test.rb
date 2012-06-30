@@ -160,12 +160,13 @@ nowt = now()
 newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
 newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
 newobj = my.insert( "rumino_test", { "name"=>"aa", "createdAt"=>todate(nowt)})
+newobj = my.insert( "rumino_test", { "name"=>:aa, "createdAt"=>todate(nowt)})
 
-assert(newobj.id==3)
+assert(newobj.id==4)
 cnt = my.queryScalar( "select count(*) from rumino_test" )
-assert(cnt==3)
+assert(cnt==4)
 cnt = my.count( "rumino_test where id>=2")
-assert(cnt==2)
+assert(cnt==3)
 e=false
 begin
   my.insert( "rumino_test", {:name=>[1,2,3], :createdAt=>{"a"=>"b"}})
@@ -179,7 +180,7 @@ assert(out)
 assert(out.id==1)
 
 res = my.query( "select id,name,createdAt from rumino_test" )
-assert( res.size == 3 )
+assert( res.size == 4 )
 
 res.each do |ent|
   print("row:",ent["id"], ",", ent["name"], ",", ent["createdAt"], "\n" )
@@ -188,16 +189,18 @@ res.each do |ent|
 end
 
 res = my.query( "select * from rumino_test where id >= ? and name='?' and name !='?' order by id", 2, "aa", "\t\n" )
-assert(res.size==2)
+assert(res.size==3)
 assert(res[0].id==2)
 assert(res[1].id==3)
+assert(res[2].id==4)
 
 # array
 ary = my.queryArray( "select id from rumino_test order by id" )
-assert( ary.size == 3 )
+assert( ary.size == 4 )
 assert( ary[0] == 1 )
 assert( ary[1] == 2 )
 assert( ary[2] == 3 )
+assert( ary[3] == 4 )
 e=false
 begin
   my.queryArray( "select id,name from rumino_test order by id" )
