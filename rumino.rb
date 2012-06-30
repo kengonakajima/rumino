@@ -861,6 +861,9 @@ class Curl
     path = URI.escape(path)
     p "GET: #{path}"
     res = hc.get(@prefix+path)
+    if res.code >=400 and res.code <=499 then
+      return nil
+    end
     return res.content
   end
   def post(path,datahash)
