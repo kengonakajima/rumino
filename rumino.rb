@@ -30,7 +30,7 @@ end
 
 
 def pp_s(h)
-  return PP.pp(h,"")
+  return PP.pp(h,"").strip
 end
 
 def p(*ary)
@@ -551,6 +551,7 @@ end
 
 
 class MysqlWrapper
+  attr_accessor :doLog
   def initialize(*args)
     require "mysql"
     host,user,pw,db = args[0],args[1],args[2],args[3]
@@ -559,6 +560,7 @@ class MysqlWrapper
       host,user,pw,db = conf["host"], conf["user"], conf["password"], conf["database"]
     end
     @my = Mysql::new(host,user,pw,db)
+    @doLog = false
   end  
   def conv(t,v)
     case t
@@ -619,7 +621,9 @@ class MysqlWrapper
     return queryScalar( "select count(*) from #{cond}", *args)
   end
   def query(s,*args)
-#    p "query:",s
+    if @doLog then
+      p pp_s(["mysql query ",s ])
+    end
     if args.size > 0 then 
       s = escf(s,*args)
     end

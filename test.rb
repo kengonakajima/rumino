@@ -147,13 +147,12 @@ my.close()
 conf = { "host"=>"localhost", "user"=>"root", "password"=>"","database"=>""}
 my = MysqlWrapper.new( conf)
 
-
+my.doLog=true
 my.query( "create database if not exists test")
 my.query( "use test")
 my.query( "drop table if exists rumino_test" )
-
 my.query( "create table if not exists rumino_test ( id int not null primary key auto_increment, name char(50), createdAt datetime )" )
-
+my.doLog=false
 
 nowt = now()
 newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
