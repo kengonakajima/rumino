@@ -551,7 +551,7 @@ end
 
 
 class MysqlWrapper
-  attr_accessor :doLog
+  attr_accessor :doLog, :lastQuery
   def initialize(*args)
     require "mysql"
     host,user,pw,db = args[0],args[1],args[2],args[3]
@@ -585,12 +585,22 @@ class MysqlWrapper
       raise "column type #{t} is not known"
     end
   end
+
+  def printLog(s)
+    @lastQuery = s
+    if @doLog then
+      p pp_s(["mysql query ",s ])
+    end
+  end
+
   # return an array of hashes
   def rawquery(s)
+    printLog(s)
     return @my.query(s)
   end
   def queryScalar(s,*args)  
     if args.size > 0 then s = escf(s,*args) end
+    printLog(s)
     res = @my.query(s)
     raise "not a scalar" if res.num_fields > 1 or res.num_rows > 1 
     row = res.fetch_row()
@@ -607,6 +617,7 @@ class MysqlWrapper
   end
   def queryArray(s,*args) # get array of scalar value
     if args.size > 0 then s = escf(s,*args) end
+    printLog(s)
     res = @my.query(s)
     raise "has more fields than 2" if res.num_fields > 1 
     fld = res.fetch_field
@@ -621,13 +632,11 @@ class MysqlWrapper
     return queryScalar( "select count(*) from #{cond}", *args)
   end
   def query(s,*args)
-    if @doLog then
-      p pp_s(["mysql query ",s ])
-    end
     if args.size > 0 then 
       s = escf(s,*args)
     end
     begin
+      printLog(s)
       res = @my.query(s)
     rescue
       p "mysql query error: '#{$!}' \n#{$!.backtrace} query:'#{s}'"

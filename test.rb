@@ -154,6 +154,8 @@ my.query( "drop table if exists rumino_test" )
 my.query( "create table if not exists rumino_test ( id int not null primary key auto_increment, name char(50), createdAt datetime )" )
 my.doLog=false
 
+p my.lastQuery
+
 nowt = now()
 newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
 newobj = my.insert( "rumino_test", { :name=>"aa", :createdAt=>todate(nowt)})
