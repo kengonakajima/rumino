@@ -10,6 +10,8 @@ require "net/smtp"
 require "webrick"
 require "cgi"
 require "pp"
+require "httpclient"
+
 
 def assert(x,*msg)
   if !x then 
@@ -855,19 +857,19 @@ class Curl
     @prefix = prefix
   end
   def get(path)
+    hc = HTTPClient.new
     path = URI.escape(path)
-    cmd = "curl -s \"#{@prefix}#{path}\""
-    STDERR.print "CURL:", cmd, "\n"
-    return `#{cmd}`
+    p "GET: #{path}"
+    res = hc.get(@prefix+path)
+    return res.content
   end
-  def post(path,data)
-    STDERR.print "POST: PATH=#{path} DATA=#{data}\n"
-    data = URI.escape(data)
-    cmd = "curl -s -d \"#{data}\" \"#{@prefix}#{path}\""
-    return `#{cmd}`
+  def post(path,datahash)
+    hc = HTTPClient.new
+    res = hc.post(@prefix+path,datahash)
+    return res.content
   end
   def getJSON(path)
-    s = self.get(path)
+    s = get(path)
     j = JSON.parse(s)
     return j
   end
