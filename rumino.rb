@@ -812,7 +812,7 @@ local_variables.each do |name|
   if name != "__s" and name =~ /^[a-zA-Z0-9]+$/ then
     __s += name + ":"
     __s += eval( name + ".to_s" )
-    __s += "(" + eval( "typeof("+name+").to_s" ) + ")"
+    __s += "(" + eval( "typeof("+name+").to_s" ).to_s + ")"
     __s += '\t'
   end
 end
