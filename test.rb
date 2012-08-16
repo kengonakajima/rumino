@@ -251,9 +251,11 @@ assert(nick=="ringo")
 
 #
 def dumplocaltest(a,b,c)
-  return dumplocal(binding)
+  d = dumplocal(binding)
+  print(d,"\n")
+  return d
 end
-assert( dumplocaltest(1,"2",3) == "a:1(Fixnum)\tb:2(String)\tc:3(Fixnum)\t\n" )
+assert( dumplocaltest(1,"2",3) == "a:1(Fixnum)\tb:2(String)\tc:3(Fixnum)\td:(NilClass)\t\n" )
 
 #
 assert( esc("hello\"") == "hello\\\"" )
