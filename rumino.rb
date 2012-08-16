@@ -805,25 +805,6 @@ def escf(fmt,*args)
 end
 
 
-def dumplocal(b)  # usage: dumplocal(binding)
-  code = <<EOF
-__s = ""
-local_variables.each do |name| 
-  if name != "__s" and name =~ /^[a-zA-Z0-9]+$/ then
-    __s += name + ":"
-    __s += eval( name + ".to_s" )
-    __s += "(" + eval( "typeof("+name+").to_s" ).to_s + ")"
-    __s += '\t'
-  end
-end
-__s += "\n"
-EOF
-  print(code)
-  out = b.eval( code )
-  return out
-end
-
-
 # timer funcs
 def setInterval(n,&blk)
   t = Thread.new do
