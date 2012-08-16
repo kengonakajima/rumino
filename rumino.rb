@@ -806,7 +806,7 @@ end
 
 
 def dumplocal(b)  # usage: dumplocal(binding)
-  out = b.eval( <<EOF
+  code = <<EOF
 __s = ""
 local_variables.each do |name| 
   if name != "__s" and name =~ /^[a-zA-Z0-9]+$/ then
@@ -818,7 +818,8 @@ local_variables.each do |name|
 end
 __s += "\n"
 EOF
-)
+  print(code)
+  out = b.eval( code )
   return out
 end
 
