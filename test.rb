@@ -6,6 +6,13 @@ monitorFiles( ["*.rb","Makefile" ] ) do
   assert( false ) #never
 end
 
+begin
+  error( "test", "for", "error" )
+rescue
+  print($!)
+end
+
+
 # hash
 h={"a"=>1,"b"=>2,:e=>3}
 h.d = 5

@@ -19,6 +19,12 @@ def assert(x,*msg)
   end
 end
 
+def error(*ary)
+  s = ary.join(" ")
+  raise(s)
+end
+
+
 def pathdate()
   t = Time.now
   return sprintf( "%d_%02d%02d_%02d%02d%02d", t.year,t.month,t.day, t.hour,t.min,t.sec )
