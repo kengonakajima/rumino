@@ -524,9 +524,9 @@ def httpQueryStringToHash(qstr)
   return h
 end
 
-def httpRespond(req,res,deftype)
+def httpRespond(req,res,cbclass)
   objectify(req)
-  instance = deftype.new
+  instance = cbclass.new
   ary = req.path.split("/")
   ary.shift
   fname = ary[0]
@@ -539,6 +539,7 @@ def httpRespond(req,res,deftype)
     fname = "default"
   else
     if ! instance.methods.include?(fname) then
+      req.paths.unshift(fname)
       fname = "default"
     end
   end
