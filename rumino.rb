@@ -870,10 +870,16 @@ end
 # exit process and clean it
 
 def usePidfile(pidfile)
-  return if !pidfile 
+  return false if !pidfile 
+  if ! savePid(pidfile)   then
+    p "cannot save pid file : ", pidfile, "\n"
+    return false
+  end
   $_rumino_pidpath = pidfile
   trap("INT") do exitCleanPidfile(1) end
   trap("TERM") do exitCleanPidFile(1) end
+  p "saved pid file at ", pidfile, "  listen to INT and TERM.."
+  return true
 end
 
 def exitCleanPidfile(code)
