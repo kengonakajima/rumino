@@ -545,8 +545,6 @@ class MiniWeb
       end
     end 
 
-    savePid(@pidpath)
-
     @srv.start()
   end
 
@@ -877,7 +875,7 @@ def usePidfile(pidfile)
   end
   $_rumino_pidpath = pidfile
   trap("INT") do exitCleanPidfile(1) end
-  trap("TERM") do exitCleanPidFile(1) end
+  trap("TERM") do exitCleanPidfile(1) end
   p "saved pid file at ", pidfile, "  listen to INT and TERM.."
   return true
 end
