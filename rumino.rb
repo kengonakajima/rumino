@@ -166,6 +166,7 @@ def readFile(path)
     f.close()
     return data
   rescue
+    p  $!
     return nil
   end
 end
@@ -234,18 +235,59 @@ def doerb(tmplpath,b)
   return s
 end
 
-def sendmail(from,to,subj,msg)
+# opt[0]: [ "hoge.wav", "fuga.png" ]
+def sendmail(from,to,subj,msg,*opts)
+  if opts.size == 1 then
+    files = opts[0]
+  end
+  if not files then files = [] end
+
   date = Time.now.to_s
 
   text  = "Subject: #{subj}\n"
   text += "From: #{from}\n"
-  text += "Content-type: text/plain; charset=iso-2022-jp\n"
+  if files.size == 0 then
+    text += "Content-type: text/plain; charset=iso-2022-jp\n"
+  else
+    p "multipart"
+    boundary = Digest::SHA1.hexdigest(Time.now.to_f.to_s)
+    text += "Content-type: multipart/mixed; boundary=" + boundary + "\n"
+    text += "MIME-Version: 1.0\n"
+  end
   text += "Sender: #{from}\n"
   text += "Date: #{date}\n"
   text += "To: #{to}\n"
-  text += "\n\n"
-  text += "#{msg}\n"
-  text += "-----end of message---------------------\n"
+  text += "\n"
+  if files.size == 0 then
+    text += "#{msg}\n"
+  else
+    text += "--" + boundary + "\n"
+    text += "Content-Type: text/plain; charset=iso-2022-jp;\n"
+    text += "Content-Transfer-Encoding: 7bit\n"    
+    text += "\n"
+    text += "#{msg}\n"
+    text += "\n"
+    files.size.times do |i|
+      f = files[i]
+      data = readFile(f)
+      if data then
+        p "path: #{f} datalen: #{data.size}"
+        text += "--" + boundary + "\n"
+        bn = File.basename(f)
+        text += "Content-Type: application/octet-stream; name=\"#{bn}\"\n"
+        text += "Content-Disposition: attachment; filename=\"#{bn}\"\n"
+        text += "Content-Transfer-Encoding: base64\n"        
+        text += "\n"
+        text += [data].pack("m")
+      else
+        p "file #{f} not found"
+      end      
+      
+      if i == files.size-1 then
+        text += "--" + boundary + "--\n"
+      end
+    end
+  end
 
   begin
     p "start smtp...\n"
